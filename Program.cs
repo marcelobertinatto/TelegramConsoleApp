@@ -39,6 +39,7 @@ namespace TelegramConsoleApp
                     foreach (var m in (hist as TLChannelMessages).Messages)
                         Console.WriteLine((m as TLMessage).Message);
                 }
+                Console.ReadLine();
 
                 //var dialogs = (TLDialogs)await client.GetUserDialogsAsync();
                 //var chat = dialogs.Chats

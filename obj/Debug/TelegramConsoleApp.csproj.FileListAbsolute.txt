@@ -6,3 +6,10 @@
 /Users/marcelobertinatto/Projects/TelegramConsoleApp/TelegramConsoleApp/obj/Debug/TelegramConsoleApp.csproj.CopyComplete
 /Users/marcelobertinatto/Projects/TelegramConsoleApp/TelegramConsoleApp/obj/Debug/TelegramConsoleApp.exe
 /Users/marcelobertinatto/Projects/TelegramConsoleApp/TelegramConsoleApp/obj/Debug/TelegramConsoleApp.pdb
+D:\Marcelo\Sandbox\GIT\TelegramConsoleApp\bin\Debug\TelegramConsoleApp.exe
+D:\Marcelo\Sandbox\GIT\TelegramConsoleApp\bin\Debug\TelegramConsoleApp.pdb
+D:\Marcelo\Sandbox\GIT\TelegramConsoleApp\obj\Debug\TelegramConsoleApp.csprojAssemblyReference.cache
+D:\Marcelo\Sandbox\GIT\TelegramConsoleApp\obj\Debug\TelegramConsoleApp.csproj.CoreCompileInputs.cache
+D:\Marcelo\Sandbox\GIT\TelegramConsoleApp\obj\Debug\TelegramConsoleApp.csproj.CopyComplete
+D:\Marcelo\Sandbox\GIT\TelegramConsoleApp\obj\Debug\TelegramConsoleApp.exe
+D:\Marcelo\Sandbox\GIT\TelegramConsoleApp\obj\Debug\TelegramConsoleApp.pdb
