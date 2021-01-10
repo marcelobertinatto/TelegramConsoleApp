@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using TeleSharp.TL;
 using TeleSharp.TL.Messages;
+using TeleSharp.TL.Updates;
 using TLSharp.Core;
+using TLSharp.Core.Utils;
 
 namespace TelegramConsoleApp
 {
@@ -13,7 +16,9 @@ namespace TelegramConsoleApp
         private const string userNumber = "+353833146370";
         public static async System.Threading.Tasks.Task Main(string[] args)
         {
+            var messagesFromGroup = new List<TLMessage>();
             var client = new TelegramClient(2954623, hash);
+
             await client.ConnectAsync();
 
             var hashCode = await client.SendCodeRequestAsync(userNumber);
@@ -21,6 +26,7 @@ namespace TelegramConsoleApp
             var telegramCode = Console.ReadLine();
 
             var user = await client.MakeAuthAsync(userNumber, hashCode, telegramCode);
+
 
             if (client.IsUserAuthorized())
             {
@@ -37,53 +43,130 @@ namespace TelegramConsoleApp
                     Console.WriteLine("=====================================================================");
                     Console.WriteLine("THIS IS:" + chat.Title + " WITH " + dia.UnreadCount + " UNREAD MESSAGES");
                     foreach (var m in (hist as TLChannelMessages).Messages)
+                    {
+                        var me = (m as TLMessage);
+                        messagesFromGroup.Add(me);
+                        //ForwardMessage(client, 1079068893, chat.Id, -4463481739700017704, me.Id);
                         Console.WriteLine((m as TLMessage).Message);
+                    }
+
+                }                
+                //Console.ReadLine();
+
+                while (true)
+                {
+                    var state = await client.SendRequestAsync<TLState>(new TLRequestGetState());
+                    var req = new TLRequestGetDifference() { Date = state.Date, Pts = state.Pts, Qts = state.Qts };
+                    var diff = await client.SendRequestAsync<TLAbsDifference>(req) as TLDifference;
+                    if (diff != null)
+                    {
+                        var channel = diff.Chats.OfType<TLChannel>().FirstOrDefault(x => x.Title.Contains("ANGEL"));
+                        foreach (var upd in diff.OtherUpdates.OfType<TLUpdateNewChannelMessage>())
+                            Console.WriteLine((upd.Message as TLMessage).Message); 
+
+                        foreach (var ch in diff.Chats.OfType<TLChannel>().Where(x => !x.Left))
+                        {
+                            var ich = new TLInputChannel() { ChannelId = ch.Id, AccessHash = (long)ch.AccessHash };
+                            var readed = new TeleSharp.TL.Channels.TLRequestReadHistory() { Channel = ich, MaxId = -1 };
+                            await client.SendRequestAsync<bool>(readed);
+                        }
+                    }
+                    await Task.Delay(500);
                 }
-                Console.ReadLine();
-
-                //var dialogs = (TLDialogs)await client.GetUserDialogsAsync();
-                //var chat = dialogs.Chats
-                //    .OfType<TLChat>()
-                //    .FirstOrDefault(c => c.Title.Contains("ANGEL"));
-
-                //var tlAbsMessages =
-                //        await client.GetHistoryAsync(
-                //            new TLInputPeerChat { ChatId = chat.Id }, 0,
-                //            0, -1, 1000);
-
-                //var tlChannelMessages = (TLMessages)tlAbsMessages;
-
-                //for (int i = 0; i < tlChannelMessages.Messages.Count - 1; i++)
-                //{
-                //    var tlAbsMessage = tlChannelMessages.Messages[i];
-
-                //    var message = (TLMessage)tlAbsMessage;
-                //}
-
-
-                //var result = await client.GetContactsAsync();
-
-                //var u = result.Users.OfType<TLUser>().ToList();
-
-                //var dialogs = await client.GetUserDialogsAsync() as TLDialogs;
-
-                //var dialogs = (TLDialogs)await client.GetUserDialogsAsync();
-                //var chat = dialogs.Chats.OfType<TLChat>().ToList();
-
-
-                //foreach (var dia in dialogs.dialogs.lists.Where(x => x.peer is TLPeerChannel && x.unread_count > 0))
-                //{
-                //    var peer = dia.peer as TLPeerChannel;
-                //    var chat = dialogs.chats.lists.OfType<TLChannel>().First(x => x.id == peer.channel_id);
-                //    var target = new TLInputPeerChannel() { channel_id = chat.id, access_hash = (long)chat.access_hash };
-                //    var hist = await telegram.GetHistoryAsync(target, 0, -1, dia.unread_count);
-
-                //    Console.WriteLine("=====================================================================");
-                //    Console.WriteLine("THIS IS:" + chat.title + " WITH " + dia.unread_count + " UNREAD MESSAGES");
-                //    foreach (var m in (hist as TLChannelMessages).messages.lists)
-                //        Console.WriteLine((m as TLMessage).message);
-                //}
             }
+        }
+
+        public async static void ForwardMessage(TelegramClient client, int userId, int chatId, long hashCode ,int messageIdInSourceContactToForward)
+        {
+            // normal Group
+            var sourcePeer = new TLInputPeerChat { ChatId = chatId };
+            var targetPeer = new TLInputPeerUser { UserId = userId, AccessHash = hashCode };
+
+            // random Ids to prevent bombinggg
+            var randomIds = new TLVector<long>
+            {
+                TLSharp.Core.Utils.Helpers.GenerateRandomLong()
+            };
+
+            // source messages
+            var sourceMessageIds = new TLVector<int>
+            {
+                messageIdInSourceContactToForward	// this ID should be in the SourcePeer's Messages
+            };
+
+            var forwardRequest = new TLRequestForwardMessages()
+            {
+                FromPeer = sourcePeer,
+                Id = sourceMessageIds,
+                ToPeer = targetPeer,
+                RandomId = randomIds,
+                //Silent = false
+            };
+
+            var result = await client.SendRequestAsync<TLUpdates>(forwardRequest);
+
+            //var req = new TLRequestForwardMessage()
+            //{
+            //    //Id = message.Id,
+            //    Peer = new TLInputPeerUser() { UserId = userId, AccessHash = (long)hashCode },
+            //    RandomId = Helpers.GenerateRandomLong(),
+            //    MessageId = messageIdInSourceContactToForward
+            //};
+
+            //var r = await client.SendRequestAsync<TLAbsUpdates>(req);
+
+            //var result = await client.SendRequestAsync<TLAbsUpdates>(new TLRequestForwardMessage() 
+            //{ 
+            //    Id = messageIdInSourceContactToForward, 
+            //    Peer = new TLInputPeerChat() { ChatId = chatId }, 
+            //    RandomId = Helpers.GenerateRandomLong(), 
+            //});
+
+            #region full code
+            ///* e.g you can use TLInputPeerUser, TLInputPeerChat, TLInputPeerChannel here as an SourcePeer */
+            //// a Person
+            //var sourcePeer = new TLInputPeerUser { UserId = <<< USER.ID >>>, AccessHash = <<< USER.AccessHash >>> };
+
+            //// normal Group
+            ////var sourcePeer = new TLInputPeerChat { ChatId = <<<USER.ID>>> };
+
+            //// SuperGroup or Channel
+            ////var sourcePeer = new TLInputPeerChannel { ChatId = <<<USER.ID>>> , AccessHash = <<<USER.AccessHash>>> };
+
+
+            ///* e.g you can use TLInputPeerUser, TLInputPeerChat, TLInputPeerChannel here as an SourcePeer */
+            //// a Person
+            ////var targetPeer = new TLInputPeerUser { UserId = <<<USER.ID>>>, AccessHash = <<<USER.AccessHash>>> };
+
+            //// normal Group
+            //var targetPeer = new TLInputPeerChat { ChatId = <<< USER.ID >>> };
+
+            //// SuperGroup or Channel
+            ////var targetPeer = new TLInputPeerChannel { ChatId = <<<USER.ID>>> , AccessHash = <<<USER.AccessHash>>> };
+
+            //// random Ids to prevent bombinggg
+            //var randomIds = new TLVector<long>
+            //{
+            //    TLSharp.Core.Utils.Helpers.GenerateRandomLong()
+            //};
+
+            //// source messages
+            //var sourceMessageIds = new TLVector<int>
+            //{
+            //    messageIdInSourceContactToForward	// this ID should be in the SourcePeer's Messages
+            //};
+
+            //var forwardRequest = new TLRequestForwardMessages()
+            //{
+            //    FromPeer = sourcePeer,
+            //    Id = sourceMessageIds,
+            //    ToPeer = targetPeer,
+            //    RandomId = randomIds,
+            //    //Silent = false
+            //};
+
+            //var result = await myTelegramClient.SendRequestAsync<TLUpdates>(forwardRequest); 
+            #endregion
         }
     }
 }
