@@ -27,30 +27,30 @@ namespace TelegramConsoleApp
 
             var user = await client.MakeAuthAsync(userNumber, hashCode, telegramCode);
 
-
+            await Task.Delay(2000);
             if (client.IsUserAuthorized())
             {
-                var dialogs = await client.GetUserDialogsAsync() as TLDialogs;
+                //var dialogs = await client.GetUserDialogsAsync() as TLDialogs;
 
-                foreach (var dia in dialogs.Dialogs.Where(x => x.Peer is TLPeerChannel && x.UnreadCount > 0))
-                {
-                    var peer = dia.Peer as TLPeerChannel;
-                    var chat = dialogs.Chats.OfType<TLChannel>().FirstOrDefault(x => x.Id == peer.ChannelId
-                                                                                && x.Title.Contains("ANGEL"));
-                    var target = new TLInputPeerChannel() { ChannelId = chat.Id, AccessHash = (long)chat.AccessHash };
-                    var hist = await client.GetHistoryAsync(target, 0, -1, dia.UnreadCount);
+                //foreach (var dia in dialogs.Dialogs.Where(x => x.Peer is TLPeerChannel && x.UnreadCount > 0))
+                //{
+                //    var peer = dia.Peer as TLPeerChannel;
+                //    var chat = dialogs.Chats.OfType<TLChannel>().FirstOrDefault(x => x.Id == peer.ChannelId
+                //                                                                && x.Title.Contains("ANGEL"));
+                //    var target = new TLInputPeerChannel() { ChannelId = chat.Id, AccessHash = (long)chat.AccessHash };
+                //    var hist = await client.GetHistoryAsync(target, 0, -1, dia.UnreadCount);
 
-                    Console.WriteLine("=====================================================================");
-                    Console.WriteLine("THIS IS:" + chat.Title + " WITH " + dia.UnreadCount + " UNREAD MESSAGES");
-                    foreach (var m in (hist as TLChannelMessages).Messages)
-                    {
-                        var me = (m as TLMessage);
-                        messagesFromGroup.Add(me);
-                        //ForwardMessage(client, 1079068893, chat.Id, -4463481739700017704, me.Id);
-                        Console.WriteLine((m as TLMessage).Message);
-                    }
+                //    Console.WriteLine("=====================================================================");
+                //    Console.WriteLine("THIS IS:" + chat.Title + " WITH " + dia.UnreadCount + " UNREAD MESSAGES");
+                //    foreach (var m in (hist as TLChannelMessages).Messages)
+                //    {
+                //        var me = (m as TLMessage);
+                //        messagesFromGroup.Add(me);
+                //        //ForwardMessage(client, 1079068893, chat.Id, -4463481739700017704, me.Id);
+                //        Console.WriteLine((m as TLMessage).Message);
+                //    }
 
-                }                
+                //}                
                 //Console.ReadLine();
 
                 while (true)
@@ -58,9 +58,9 @@ namespace TelegramConsoleApp
                     var state = await client.SendRequestAsync<TLState>(new TLRequestGetState());
                     var req = new TLRequestGetDifference() { Date = state.Date, Pts = state.Pts, Qts = state.Qts };
                     var diff = await client.SendRequestAsync<TLAbsDifference>(req) as TLDifference;
+                    //var channel = diff.Chats.OfType<TLChannel>().FirstOrDefault(x => x.Title.Contains("ANGEL"));
                     if (diff != null)
                     {
-                        var channel = diff.Chats.OfType<TLChannel>().FirstOrDefault(x => x.Title.Contains("ANGEL"));
                         foreach (var upd in diff.OtherUpdates.OfType<TLUpdateNewChannelMessage>())
                             Console.WriteLine((upd.Message as TLMessage).Message); 
 
