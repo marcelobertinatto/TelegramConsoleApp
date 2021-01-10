@@ -1,0 +1,16 @@
+D:\Marcelo\Sandbox\GIT\TelegramConsoleApp\TelegramConsoleApp\bin\Debug\netcoreapp3.1\TelegramConsoleApp.exe
+D:\Marcelo\Sandbox\GIT\TelegramConsoleApp\TelegramConsoleApp\obj\Debug\netcoreapp3.1\TelegramConsoleApp.csprojAssemblyReference.cache
+D:\Marcelo\Sandbox\GIT\TelegramConsoleApp\TelegramConsoleApp\obj\Debug\netcoreapp3.1\TelegramConsoleApp.AssemblyInfoInputs.cache
+D:\Marcelo\Sandbox\GIT\TelegramConsoleApp\TelegramConsoleApp\obj\Debug\netcoreapp3.1\TelegramConsoleApp.AssemblyInfo.cs
+D:\Marcelo\Sandbox\GIT\TelegramConsoleApp\TelegramConsoleApp\bin\Debug\netcoreapp3.1\TelegramConsoleApp.deps.json
+D:\Marcelo\Sandbox\GIT\TelegramConsoleApp\TelegramConsoleApp\bin\Debug\netcoreapp3.1\TelegramConsoleApp.runtimeconfig.json
+D:\Marcelo\Sandbox\GIT\TelegramConsoleApp\TelegramConsoleApp\bin\Debug\netcoreapp3.1\TelegramConsoleApp.runtimeconfig.dev.json
+D:\Marcelo\Sandbox\GIT\TelegramConsoleApp\TelegramConsoleApp\bin\Debug\netcoreapp3.1\TelegramConsoleApp.dll
+D:\Marcelo\Sandbox\GIT\TelegramConsoleApp\TelegramConsoleApp\bin\Debug\netcoreapp3.1\TelegramConsoleApp.pdb
+D:\Marcelo\Sandbox\GIT\TelegramConsoleApp\TelegramConsoleApp\bin\Debug\netcoreapp3.1\TLSharp.Core.dll
+D:\Marcelo\Sandbox\GIT\TelegramConsoleApp\TelegramConsoleApp\bin\Debug\netcoreapp3.1\TeleSharp.TL.dll
+D:\Marcelo\Sandbox\GIT\TelegramConsoleApp\TelegramConsoleApp\obj\Debug\netcoreapp3.1\TelegramConsoleApp.csproj.CoreCompileInputs.cache
+D:\Marcelo\Sandbox\GIT\TelegramConsoleApp\TelegramConsoleApp\obj\Debug\netcoreapp3.1\TelegramConsoleApp.csproj.CopyComplete
+D:\Marcelo\Sandbox\GIT\TelegramConsoleApp\TelegramConsoleApp\obj\Debug\netcoreapp3.1\TelegramConsoleApp.dll
+D:\Marcelo\Sandbox\GIT\TelegramConsoleApp\TelegramConsoleApp\obj\Debug\netcoreapp3.1\TelegramConsoleApp.pdb
+D:\Marcelo\Sandbox\GIT\TelegramConsoleApp\TelegramConsoleApp\obj\Debug\netcoreapp3.1\TelegramConsoleApp.genruntimeconfig.cache

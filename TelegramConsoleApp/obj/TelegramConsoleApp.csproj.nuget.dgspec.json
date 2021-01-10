@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Marcelo\\Sandbox\\TelegramConsoleApp\\TelegramConsoleApp\\TelegramConsoleApp.csproj": {}
+    "D:\\Marcelo\\Sandbox\\GIT\\TelegramConsoleApp\\TelegramConsoleApp\\TelegramConsoleApp.csproj": {}
   },
   "projects": {
-    "D:\\Marcelo\\Sandbox\\TelegramConsoleApp\\TelegramConsoleApp\\TelegramConsoleApp.csproj": {
+    "D:\\Marcelo\\Sandbox\\GIT\\TelegramConsoleApp\\TelegramConsoleApp\\TelegramConsoleApp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Marcelo\\Sandbox\\TelegramConsoleApp\\TelegramConsoleApp\\TelegramConsoleApp.csproj",
+        "projectUniqueName": "D:\\Marcelo\\Sandbox\\GIT\\TelegramConsoleApp\\TelegramConsoleApp\\TelegramConsoleApp.csproj",
         "projectName": "TelegramConsoleApp",
-        "projectPath": "D:\\Marcelo\\Sandbox\\TelegramConsoleApp\\TelegramConsoleApp\\TelegramConsoleApp.csproj",
+        "projectPath": "D:\\Marcelo\\Sandbox\\GIT\\TelegramConsoleApp\\TelegramConsoleApp\\TelegramConsoleApp.csproj",
         "packagesPath": "C:\\Users\\Marce\\.nuget\\packages\\",
-        "outputPath": "D:\\Marcelo\\Sandbox\\TelegramConsoleApp\\TelegramConsoleApp\\obj\\",
+        "outputPath": "D:\\Marcelo\\Sandbox\\GIT\\TelegramConsoleApp\\TelegramConsoleApp\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
@@ -40,6 +40,12 @@
       },
       "frameworks": {
         "netcoreapp3.1": {
+          "dependencies": {
+            "TLSharp": {
+              "target": "Package",
+              "version": "[0.1.0.574, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",

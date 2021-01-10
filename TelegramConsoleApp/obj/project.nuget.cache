@@ -1,8 +1,21 @@
 {
   "version": 2,
-  "dgSpecHash": "j797r9xDVExkCkVJzmQ5EipB4W071dovF6n4hezNzDuCmfHnJ5zIsbKmd96rbwCEwFvOkwyso+5/w8pGGEpOMg==",
+  "dgSpecHash": "6NgUIDeRQjwErw2svgglYHUx7AO6kY5FVMBA+/oP2NJitmw3/L+iVyxW1/nIAHeles8E0emctmGvc3y6cIb96Q==",
   "success": true,
-  "projectFilePath": "D:\\Marcelo\\Sandbox\\TelegramConsoleApp\\TelegramConsoleApp\\TelegramConsoleApp.csproj",
-  "expectedPackageFiles": [],
-  "logs": []
+  "projectFilePath": "D:\\Marcelo\\Sandbox\\GIT\\TelegramConsoleApp\\TelegramConsoleApp\\TelegramConsoleApp.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Marce\\.nuget\\packages\\tlsharp\\0.1.0.574\\tlsharp.0.1.0.574.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'TLSharp 0.1.0.574' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8' instead of the project target framework '.NETCoreApp,Version=v3.1'. This package may not be fully compatible with your project.",
+      "libraryId": "TLSharp",
+      "targetGraphs": [
+        ".NETCoreApp,Version=v3.1"
+      ]
+    }
+  ]
 }
