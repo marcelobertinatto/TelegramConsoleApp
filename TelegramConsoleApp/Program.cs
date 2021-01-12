@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using TelegramConsoleApp.Model;
 using TeleSharp.TL;
 using TeleSharp.TL.Messages;
 using TeleSharp.TL.Updates;
@@ -16,8 +18,8 @@ namespace TelegramConsoleApp
         private const string userNumber = "+353833146370";
         public static async System.Threading.Tasks.Task Main(string[] args)
         {
-            var messagesFromGroup = new List<TLMessage>();
             var client = new TelegramClient(2954623, hash);
+            var signalsList = new List<Signal>();
 
             await client.ConnectAsync();
 
@@ -27,52 +29,102 @@ namespace TelegramConsoleApp
 
             var user = await client.MakeAuthAsync(userNumber, hashCode, telegramCode);
 
-            await Task.Delay(2000);
             if (client.IsUserAuthorized())
             {
-                //var dialogs = await client.GetUserDialogsAsync() as TLDialogs;
+                var dialogs = await client.GetUserDialogsAsync() as TLDialogs;
 
-                //foreach (var dia in dialogs.Dialogs.Where(x => x.Peer is TLPeerChannel && x.UnreadCount > 0))
-                //{
-                //    var peer = dia.Peer as TLPeerChannel;
-                //    var chat = dialogs.Chats.OfType<TLChannel>().FirstOrDefault(x => x.Id == peer.ChannelId
-                //                                                                && x.Title.Contains("ANGEL"));
-                //    var target = new TLInputPeerChannel() { ChannelId = chat.Id, AccessHash = (long)chat.AccessHash };
-                //    var hist = await client.GetHistoryAsync(target, 0, -1, dia.UnreadCount);
-
-                //    Console.WriteLine("=====================================================================");
-                //    Console.WriteLine("THIS IS:" + chat.Title + " WITH " + dia.UnreadCount + " UNREAD MESSAGES");
-                //    foreach (var m in (hist as TLChannelMessages).Messages)
-                //    {
-                //        var me = (m as TLMessage);
-                //        messagesFromGroup.Add(me);
-                //        //ForwardMessage(client, 1079068893, chat.Id, -4463481739700017704, me.Id);
-                //        Console.WriteLine((m as TLMessage).Message);
-                //    }
-
-                //}                
-                //Console.ReadLine();
-
-                while (true)
+                foreach (var dia in dialogs.Dialogs.Where(x => x.Peer is TLPeerChannel && x.UnreadCount > 0))
                 {
-                    var state = await client.SendRequestAsync<TLState>(new TLRequestGetState());
-                    var req = new TLRequestGetDifference() { Date = state.Date, Pts = state.Pts, Qts = state.Qts };
-                    var diff = await client.SendRequestAsync<TLAbsDifference>(req) as TLDifference;
-                    //var channel = diff.Chats.OfType<TLChannel>().FirstOrDefault(x => x.Title.Contains("ANGEL"));
-                    if (diff != null)
+                    var peer = dia.Peer as TLPeerChannel;
+                    var chat = dialogs.Chats.OfType<TLChannel>().FirstOrDefault(x => x.Id == peer.ChannelId
+                                                                                && x.Title.Contains("24 HORAS"));
+                    if (chat != null)
                     {
-                        foreach (var upd in diff.OtherUpdates.OfType<TLUpdateNewChannelMessage>())
-                            Console.WriteLine((upd.Message as TLMessage).Message); 
+                        var target = new TLInputPeerChannel() { ChannelId = chat.Id, AccessHash = (long)chat.AccessHash };
+                        var hist = await client.GetHistoryAsync(target, 0, -1, dia.UnreadCount);
 
-                        foreach (var ch in diff.Chats.OfType<TLChannel>().Where(x => !x.Left))
+                        Console.WriteLine("=====================================================================");
+                        Console.WriteLine("THIS IS:" + chat.Title + " WITH " + dia.UnreadCount + " UNREAD MESSAGES");
+                        var messagesLists = (hist as TLChannelMessages).Messages.ToList();
+                        foreach (var m in messagesLists)
                         {
-                            var ich = new TLInputChannel() { ChannelId = ch.Id, AccessHash = (long)ch.AccessHash };
-                            var readed = new TeleSharp.TL.Channels.TLRequestReadHistory() { Channel = ich, MaxId = -1 };
-                            await client.SendRequestAsync<bool>(readed);
-                        }
+                            var me = (m as TLMessage);
+                            var result = me.Message.Split(new char[0], StringSplitOptions.RemoveEmptyEntries);
+                            for (int i = 0; i < result.Length; i++)
+                            {
+                                var regxTimeFormat = new Regex(@"^(?=\d)(?:(?:31(?!.(?:0?[2469]|11))|(?:30|29)(?!.0?2)|
+                                        29(?=.0?2.(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579]
+                                        [26])00)))(?:\x20|$))|(?:2[0-8]|1\d|0?[1-9]))([-./])(?:1[012]|0?[1-9])\1(?:1[6-9]|[2-9]\d)?\d\d
+                                        (?:(?=\x20\d)\x20|$))?(((0?[1-9]|1[012])(:[0-5]\d){0,2}(\x20[AP]M))|([01]\d|2[0-3])(:[0-5]\d){1,2})?$");
+                                
+                                if (!regxTimeFormat.IsMatch(result[i]))
+                                {
+                                    var regxSpecialCharac = new Regex("[^a-zA-Z0-9_.]+");
+                                    var regxEmoticons = new Regex(@"/(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e
+                                                    [\ud000-\udfff])/g");
+                                    if (regxSpecialCharac.IsMatch(result[i]))
+                                    {
+                                        result = result.Where((source, index) => index != i).ToArray();
+                                    }
+                                    else if (regxEmoticons.IsMatch(result[i]))
+                                    {
+                                        result = result.Where((source, index) => index != i).ToArray();
+                                    }
+                                }
+                            }
+
+                            if (result.Length > 20)
+                            {
+                                var signal = new Signal();
+                                signal.MessageId = Convert.ToInt64(me.Id);
+                                signal.Currency = result[0].ToString();
+                                signal.CurrencyTime = result[1].ToString();
+                                signal.Time = result[2].ToString();
+                                signal.CurrencySignal = result[3].ToString();
+                                signal.Date = result[4].ToString();
+                                signal.CurrencyAssertPercentage1 = result[12].ToString();
+                                signal.CurrencyAssertPercentage2 = result[15].ToString();
+                                signal.CurrencyAssertPercentage3 = result[16].ToString().Equals("BACKTEST") ? result[15].ToString() : result[19].ToString();
+
+                                signalsList.Add(signal); 
+                            }
+                            
+                            
+                            //ForwardMessage(client, 1079068893, chat.Id, -4463481739700017704, me.Id);
+                            Console.WriteLine((m as TLMessage).Message);
+                        } 
                     }
-                    await Task.Delay(500);
                 }
+                Console.ReadLine();
+
+                //while (true)
+                //{
+                //    var state = await client.SendRequestAsync<TLState>(new TLRequestGetState());
+                //    var req = new TLRequestGetDifference() { Date = state.Date, Pts = state.Pts, Qts = state.Qts };
+                //    var diff = await client.SendRequestAsync<TLAbsDifference>(req) as TLDifference;
+                //    if(diff != null)
+                //    {
+                //        var channel = diff.Chats.OfType<TLChannel>().FirstOrDefault(x => x.Title.ToUpper().Contains("ANGEL"));
+
+                //        if (channel != null)
+                //        {
+                //            foreach (var upd in diff.OtherUpdates.OfType<TLUpdateNewChannelMessage>())
+                //            {
+                //                Console.WriteLine((upd.Message as TLMessage).Message);
+                //                Console.WriteLine("\n --------------------------------------------- \n");
+                //            }
+                                
+
+                //            foreach (var ch in diff.Chats.OfType<TLChannel>().Where(x => !x.Left))
+                //            {
+                //                var ich = new TLInputChannel() { ChannelId = ch.Id, AccessHash = (long)ch.AccessHash };
+                //                var readed = new TeleSharp.TL.Channels.TLRequestReadHistory() { Channel = ich, MaxId = -1 };
+                //                await client.SendRequestAsync<bool>(readed);
+                //            } 
+                //        }
+                //    }
+                //    //await Task.Delay(200);
+                //}
             }
         }
 
