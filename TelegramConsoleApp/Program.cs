@@ -31,69 +31,108 @@ namespace TelegramConsoleApp
 
             if (client.IsUserAuthorized())
             {
-                var dialogs = await client.GetUserDialogsAsync() as TLDialogs;
-
-                foreach (var dia in dialogs.Dialogs.Where(x => x.Peer is TLPeerChannel && x.UnreadCount > 0))
+                while(true)
                 {
-                    var peer = dia.Peer as TLPeerChannel;
-                    var chat = dialogs.Chats.OfType<TLChannel>().FirstOrDefault(x => x.Id == peer.ChannelId
-                                                                                && x.Title.Contains("24 HORAS"));
-                    if (chat != null)
-                    {
-                        var target = new TLInputPeerChannel() { ChannelId = chat.Id, AccessHash = (long)chat.AccessHash };
-                        var hist = await client.GetHistoryAsync(target, 0, -1, dia.UnreadCount);
 
-                        Console.WriteLine("=====================================================================");
-                        Console.WriteLine("THIS IS:" + chat.Title + " WITH " + dia.UnreadCount + " UNREAD MESSAGES");
-                        var messagesLists = (hist as TLChannelMessages).Messages.ToList();
-                        foreach (var m in messagesLists)
+                    var dialogs = await client.GetUserDialogsAsync() as TLDialogs;
+
+                    foreach (var dia in dialogs.Dialogs.Where(x => x.Peer is TLPeerChannel && x.UnreadCount > 0))
+                    {
+                        var peer = dia.Peer as TLPeerChannel;
+                        var chat = dialogs.Chats.OfType<TLChannel>().FirstOrDefault(x => x.Id == peer.ChannelId
+                                                                                    && x.Title.Contains("24 HORAS"));
+                        if (chat != null)
                         {
-                            var me = (m as TLMessage);
-                            var result = me.Message.Split(new char[0], StringSplitOptions.RemoveEmptyEntries);
-                            for (int i = 0; i < result.Length; i++)
+                            var target = new TLInputPeerChannel() { ChannelId = chat.Id, AccessHash = (long)chat.AccessHash };
+                            var hist = await client.GetHistoryAsync(target, 0, -1, dia.UnreadCount);
+
+                            Console.WriteLine("=====================================================================");
+                            Console.WriteLine("THIS IS:" + chat.Title + " WITH " + dia.UnreadCount + " UNREAD MESSAGES");
+                            var messagesLists = (hist as TLChannelMessages).Messages.ToList();
+                            foreach (var m in messagesLists)
                             {
-                                var regxTimeFormat = new Regex(@"^(?=\d)(?:(?:31(?!.(?:0?[2469]|11))|(?:30|29)(?!.0?2)|
+                                var me = (m as TLMessage);
+                                var result = me.Message.Split(new char[0], StringSplitOptions.RemoveEmptyEntries);
+                                for (int i = 0; i < result.Length; i++)
+                                {
+                                    var regxTimeFormat = new Regex(@"^(?=\d)(?:(?:31(?!.(?:0?[2469]|11))|(?:30|29)(?!.0?2)|
                                         29(?=.0?2.(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579]
                                         [26])00)))(?:\x20|$))|(?:2[0-8]|1\d|0?[1-9]))([-./])(?:1[012]|0?[1-9])\1(?:1[6-9]|[2-9]\d)?\d\d
                                         (?:(?=\x20\d)\x20|$))?(((0?[1-9]|1[012])(:[0-5]\d){0,2}(\x20[AP]M))|([01]\d|2[0-3])(:[0-5]\d){1,2})?$");
-                                
-                                if (!regxTimeFormat.IsMatch(result[i]))
-                                {
-                                    var regxSpecialCharac = new Regex("[^a-zA-Z0-9_.]+");
-                                    var regxEmoticons = new Regex(@"/(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e
+
+                                    if (!regxTimeFormat.IsMatch(result[i]))
+                                    {
+                                        var regxSpecialCharac = new Regex("[^a-zA-Z0-9_.]+");
+                                        var regxEmoticons = new Regex(@"/(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e
                                                     [\ud000-\udfff])/g");
-                                    if (regxSpecialCharac.IsMatch(result[i]))
-                                    {
-                                        result = result.Where((source, index) => index != i).ToArray();
-                                    }
-                                    else if (regxEmoticons.IsMatch(result[i]))
-                                    {
-                                        result = result.Where((source, index) => index != i).ToArray();
+                                        if (regxSpecialCharac.IsMatch(result[i]))
+                                        {
+                                            result = result.Where((source, index) => index != i).ToArray();
+                                        }
+                                        else if (regxEmoticons.IsMatch(result[i]))
+                                        {
+                                            result = result.Where((source, index) => index != i).ToArray();
+                                        }
                                     }
                                 }
-                            }
 
-                            if (result.Length > 20)
+                                if (result.Length > 20)
+                                {
+                                    var signal = new Signal();
+                                    signal.MessageId = Convert.ToInt64(me.Id);
+                                    signal.Currency = result[0].ToString();
+                                    signal.CurrencyTime = result[1].ToString();
+                                    signal.Time = result[2].ToString();
+                                    signal.CurrencySignal = result[3].ToString();
+                                    signal.Date = result[4].ToString();
+                                    signal.CurrencyAssertPercentage1 = result[12].ToString();
+                                    signal.CurrencyAssertPercentage2 = result[15].ToString();
+                                    signal.CurrencyAssertPercentage3 = result[16].ToString().Equals("BACKTEST") ? result[15].ToString() : result[19].ToString();
+
+                                    signalsList.Add(signal);
+                                }
+
+
+                                //ForwardMessage(client, 1079068893, chat.Id, -4463481739700017704, me.Id);
+                                Console.WriteLine((m as TLMessage).Message);
+                            }
+                        }
+
+                        var chat2 = dialogs.Chats.OfType<TLChannel>().FirstOrDefault(x => x.Id == peer.ChannelId
+                                                                                    && x.Title.Contains("TESTE"));
+                        if (chat2 != null)
+                        {
+                            foreach (var item in signalsList)
                             {
-                                var signal = new Signal();
-                                signal.MessageId = Convert.ToInt64(me.Id);
-                                signal.Currency = result[0].ToString();
-                                signal.CurrencyTime = result[1].ToString();
-                                signal.Time = result[2].ToString();
-                                signal.CurrencySignal = result[3].ToString();
-                                signal.Date = result[4].ToString();
-                                signal.CurrencyAssertPercentage1 = result[12].ToString();
-                                signal.CurrencyAssertPercentage2 = result[15].ToString();
-                                signal.CurrencyAssertPercentage3 = result[16].ToString().Equals("BACKTEST") ? result[15].ToString() : result[19].ToString();
 
-                                signalsList.Add(signal); 
+                                var squareColor = item.CurrencySignal.Equals("CALL") ? "🟩 " + item.CurrencySignal + "\n\n"
+                                        : "🟥 " + item.CurrencySignal + "\n\n";
+
+                                await client.SendMessageAsync(new TLInputPeerChannel()
+                                {
+                                    ChannelId = chat2.Id,
+                                    AccessHash = chat2.AccessHash.Value
+                                },
+                                                string.Format("--- {0} ---\n" +
+                                                    "🇧🇷 ANGEL SIGNALS 🇧🇷\n" +
+                                                    "   🇨🇮 TRADER X 🇨🇮\n" +
+                                                    "================\n" +
+                                                    "💰 {1}\n" +
+                                                    "⏰ {2}\n" +
+                                                    "⏳ {3}\n" +
+                                                    "{4}" +
+                                                    "Sinal até gale 1."
+                                                    , item.Date, item.Currency
+                                                    , item.Time, item.CurrencyTime.Replace(",", ""), squareColor));
                             }
-                            
-                            
-                            //ForwardMessage(client, 1079068893, chat.Id, -4463481739700017704, me.Id);
-                            Console.WriteLine((m as TLMessage).Message);
-                        } 
+                        }
+
+
+                        await Task.Delay(15000);
                     }
+
+                    //await Task.Delay(500);
+
                 }
                 Console.ReadLine();
 
