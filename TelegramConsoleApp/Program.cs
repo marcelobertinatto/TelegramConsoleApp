@@ -20,6 +20,8 @@ namespace TelegramConsoleApp
         {
             var client = new TelegramClient(2954623, hash);
             var signalsList = new List<Signal>();
+            var sentSignalsList = new List<Signal>();
+            int seconds = 0;
 
             await client.ConnectAsync();
 
@@ -33,8 +35,13 @@ namespace TelegramConsoleApp
             {
                 while(true)
                 {
-
+                    while (seconds < 20 && seconds != 0)
+                    {
+                        await Task.Delay(2000);
+                        seconds += 2;
+                    }
                     var dialogs = await client.GetUserDialogsAsync() as TLDialogs;
+                    seconds = 0;
 
                     foreach (var dia in dialogs.Dialogs.Where(x => x.Peer is TLPeerChannel && x.UnreadCount > 0))
                     {
@@ -42,7 +49,7 @@ namespace TelegramConsoleApp
                         var chat = dialogs.Chats.OfType<TLChannel>().FirstOrDefault(x => x.Id == peer.ChannelId
                                                                                     && x.Title.Contains("24 HORAS"));
                         if (chat != null)
-                        {
+                            {
                             var target = new TLInputPeerChannel() { ChannelId = chat.Id, AccessHash = (long)chat.AccessHash };
                             var hist = await client.GetHistoryAsync(target, 0, -1, dia.UnreadCount);
 
@@ -89,52 +96,86 @@ namespace TelegramConsoleApp
                                     signal.CurrencyAssertPercentage2 = result[15].ToString();
                                     signal.CurrencyAssertPercentage3 = result[16].ToString().Equals("BACKTEST") ? result[15].ToString() : result[19].ToString();
 
-                                    signalsList.Add(signal);
+                                    if (signalsList.FirstOrDefault(x => x.MessageId == signal.MessageId) == null)
+                                    {
+                                        signalsList.Add(signal);
+                                    }
                                 }
-
-
                                 //ForwardMessage(client, 1079068893, chat.Id, -4463481739700017704, me.Id);
-                                Console.WriteLine((m as TLMessage).Message);
+                                //Console.WriteLine((m as TLMessage).Message);
                             }
                         }
 
-                        var chat2 = dialogs.Chats.OfType<TLChannel>().FirstOrDefault(x => x.Id == peer.ChannelId
-                                                                                    && x.Title.Contains("TESTE"));
+                        var chat2 = dialogs.Chats.OfType<TLChannel>().FirstOrDefault(x => x.Title.ToUpper().Contains("TESTE"));
                         if (chat2 != null)
                         {
-                            foreach (var item in signalsList)
+                            var list = signalsList.Where(x => !sentSignalsList.Any(y => y.MessageId == x.MessageId )).OrderBy(x => x.MessageId).ToList();
+                            foreach (var item in list)
                             {
-
-                                var squareColor = item.CurrencySignal.Equals("CALL") ? "🟩 " + item.CurrencySignal + "\n\n"
-                                        : "🟥 " + item.CurrencySignal + "\n\n";
-
-                                await client.SendMessageAsync(new TLInputPeerChannel()
+                                var percentage = Decimal.Round(decimal.Parse(item.CurrencyAssertPercentage1.Replace("%", string.Empty).Replace(",",".")),2);
+                                if (percentage >= 70.0m)
                                 {
-                                    ChannelId = chat2.Id,
-                                    AccessHash = chat2.AccessHash.Value
-                                },
-                                                string.Format("--- {0} ---\n" +
-                                                    "🇧🇷 ANGEL SIGNALS 🇧🇷\n" +
-                                                    "   🇨🇮 TRADER X 🇨🇮\n" +
-                                                    "================\n" +
-                                                    "💰 {1}\n" +
-                                                    "⏰ {2}\n" +
-                                                    "⏳ {3}\n" +
-                                                    "{4}" +
-                                                    "Sinal até gale 1."
-                                                    , item.Date, item.Currency
-                                                    , item.Time, item.CurrencyTime.Replace(",", ""), squareColor));
+                                    var time = DateTime.Now.AddHours(-3).AddMinutes(5);
+                                    var signalTime = DateTime.Parse(item.CurrencyTime);
+                                    //var timeRoundedUp = RoundUp(time, TimeSpan.FromMinutes(5)).ToShortTimeString();
+                                    if (signalTime >= time)
+                                    {
+                                        var squareColor = item.CurrencySignal.Equals("CALL") ? "🟩 " + item.CurrencySignal + "\n\n"
+                                                                        : "🟥 " + item.CurrencySignal + "\n\n";
+
+                                        await client.SendMessageAsync(new TLInputPeerChannel()
+                                        {
+                                            ChannelId = chat2.Id,
+                                            AccessHash = chat2.AccessHash.Value
+                                        },
+                                                        string.Format("--- {0} ---\n" +
+                                                            "🇧🇷 ANGEL SIGNALS 🇧🇷\n" +
+                                                            "   🇨🇮 TRADER X 🇨🇮\n" +
+                                                            "================\n" +
+                                                            "💰 {1}\n" +
+                                                            "⏰ {2}\n" +
+                                                            "⏳ {3}\n" +
+                                                            "{4}" +
+                                                            "Sinal até gale 1."
+                                                            , item.Date, item.Currency
+                                                            , item.Time, item.CurrencyTime.Replace(",", ""), squareColor)); 
+                                    }
+                                }
+                                //else
+                                //{
+                                //    TLInputChannel channelToMarkRead = new TLInputChannel { ChannelId = target.ChannelId, AccessHash = target.AccessHash };
+                                //    int firstUnreadMessageId = ((TLMessage)hist.Messages.First()).Id;
+                                //    var markHistoryAsReadRequest = new TLRequestReadHistory()
+                                //    {
+                                //        Channel = channelToMarkRead,
+                                //        MaxId = -1,
+                                //        ConfirmReceived = true,
+                                //        Dirty = true,
+                                //        MessageId = firstUnreadMessageId,
+                                //        Sequence = dialog.UnreadCount
+                                //    };
+
+                                //    bool isMarked = client.SendRequestAsync<bool>(markHistoryAsReadRequest).Result;
+                                //    //var markAsRead = new TeleSharp.TL.Channels.TLRequestReadHistory()
+                                //    //{
+                                //    //    Channel = chat2,
+                                //    //    MaxId = -1,
+                                //    //    Dirty = true,
+                                //    //    MessageId = item.MessageId,
+                                //    //    ConfirmReceived = true,
+                                //    //    Sequence = dialog.unread_count
+                                //    //};
+                                //    //var readed = await client.SendRequestAsync<bool>(markAsRead);
+                                //}
+                                
+                                await Task.Delay(2000);
+                                seconds += 2;
+                                sentSignalsList.Add(item);
                             }
                         }
-
-
-                        await Task.Delay(15000);
                     }
-
-                    //await Task.Delay(500);
-
+                    seconds = 1;
                 }
-                Console.ReadLine();
 
                 //while (true)
                 //{
@@ -165,6 +206,13 @@ namespace TelegramConsoleApp
                 //    //await Task.Delay(200);
                 //}
             }
+        }
+
+        public static DateTime RoundUp(DateTime dt, TimeSpan d)
+        {
+            var modTicks = dt.Ticks % d.Ticks;
+            var delta = modTicks != 0 ? d.Ticks - modTicks : 0;
+            return new DateTime(dt.Ticks + delta, dt.Kind);
         }
 
         public async static void ForwardMessage(TelegramClient client, int userId, int chatId, long hashCode ,int messageIdInSourceContactToForward)
