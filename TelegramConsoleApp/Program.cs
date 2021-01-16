@@ -35,7 +35,7 @@ namespace TelegramConsoleApp
             {
                 while(true)
                 {
-                    while (seconds < 20 && seconds != 0)
+                    while (seconds < 9 && seconds != 0)
                     {
                         await Task.Delay(2000);
                         seconds += 2;
@@ -83,11 +83,11 @@ namespace TelegramConsoleApp
                                     }
                                 }
 
-                                if (result.Length > 20)
+                                if (result.Length > 20 && !result[4].Contains("PARCIAL"))
                                 {
                                     var signal = new Signal();
                                     signal.MessageId = Convert.ToInt64(me.Id);
-                                    signal.Currency = result[0].ToString();
+                                    signal.Currency = result[0].ToString().Equals("|") ? result[6].ToString() : result[0].ToString();
                                     signal.CurrencyTime = result[1].ToString();
                                     signal.Time = result[2].ToString();
                                     signal.CurrencySignal = result[3].ToString();
@@ -112,12 +112,16 @@ namespace TelegramConsoleApp
                             var list = signalsList.Where(x => !sentSignalsList.Any(y => y.MessageId == x.MessageId )).OrderBy(x => x.MessageId).ToList();
                             foreach (var item in list)
                             {
+                                var currentDate = DateTime.Parse(item.Date).Date;
+                                var time = DateTime.Now.AddHours(-3);//.AddMinutes(5);
+                                var signalTime = new DateTime(Convert.ToInt32(item.Date.Substring(6, 4)),
+                                                    Convert.ToInt32(item.Date.Substring(3, 2)),
+                                                    Convert.ToInt32(item.Date.Substring(0, 2)),
+                                                    Convert.ToInt32(item.CurrencyTime.Substring(0, 2)),
+                                                    Convert.ToInt32(item.CurrencyTime.Substring(3, 2)),00);
                                 var percentage = Decimal.Round(decimal.Parse(item.CurrencyAssertPercentage1.Replace("%", string.Empty).Replace(",",".")),2);
-                                if (percentage >= 70.0m)
+                                if (percentage >= 50.0m && time.Date == currentDate)
                                 {
-                                    var time = DateTime.Now.AddHours(-3).AddMinutes(5);
-                                    var signalTime = DateTime.Parse(item.CurrencyTime);
-                                    //var timeRoundedUp = RoundUp(time, TimeSpan.FromMinutes(5)).ToShortTimeString();
                                     if (signalTime >= time)
                                     {
                                         var squareColor = item.CurrencySignal.Equals("CALL") ? "🟩 " + item.CurrencySignal + "\n\n"
@@ -138,7 +142,20 @@ namespace TelegramConsoleApp
                                                             "{4}" +
                                                             "Sinal até gale 1."
                                                             , item.Date, item.Currency
-                                                            , item.Time, item.CurrencyTime.Replace(",", ""), squareColor)); 
+                                                            , item.Time, item.CurrencyTime.Replace(",", ""), squareColor));
+
+                                        Console.WriteLine("=====================================================================");
+                                        Console.WriteLine(string.Format("--- {0} ---\n" +
+                                                            "🇧🇷 ANGEL SIGNALS 🇧🇷\n" +
+                                                            "   🇨🇮 TRADER X 🇨🇮\n" +
+                                                            "================\n" +
+                                                            "💰 {1}\n" +
+                                                            "⏰ {2}\n" +
+                                                            "⏳ {3}\n" +
+                                                            "{4}" +
+                                                            "Sinal até gale 1."
+                                                            , item.Date, item.Currency
+                                                            , item.Time, item.CurrencyTime.Replace(",", ""), squareColor));
                                     }
                                 }
                                 //else
@@ -168,7 +185,7 @@ namespace TelegramConsoleApp
                                 //    //var readed = await client.SendRequestAsync<bool>(markAsRead);
                                 //}
                                 
-                                await Task.Delay(2000);
+                                await Task.Delay(500);
                                 seconds += 2;
                                 sentSignalsList.Add(item);
                             }
