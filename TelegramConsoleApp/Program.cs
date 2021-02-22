@@ -25,8 +25,7 @@ namespace TelegramConsoleApp
             var client = new TelegramClient(2954623, hash, new FileSessionStore(), fullPathToDat);
             var signalsList = new List<Signal>();
             var sentSignalsList = new List<Signal>();
-            //int seconds = 0;
-            
+
             await client.ConnectAsync();
 
             if (!client.IsUserAuthorized())
@@ -35,183 +34,308 @@ namespace TelegramConsoleApp
                 Console.WriteLine("Type telegram code");
                 var telegramCode = Console.ReadLine();
 
-                var user = await client.MakeAuthAsync(userNumber, hashCode, telegramCode); 
-            }
+                var user = await client.MakeAuthAsync(userNumber, hashCode, telegramCode);
 
-            var store = new FileSessionStore();
-            TelegramClient clientAccess = new TelegramClient(2954623, hash, store, fullPathToDat);
-            await clientAccess.ConnectAsync();
-
-            if (clientAccess.IsUserAuthorized())
-            {
-                while (true)
+                if (client.IsUserAuthorized())
                 {
-                    //while (seconds < 20 && seconds != 0)
-                    //{
-                    //    await Task.Delay(2000);
-                    //    seconds += 2;
-                    //}
-                    var dialogs = await clientAccess.GetUserDialogsAsync() as TLDialogs;
-                    //seconds = 0;
-
-                    foreach (var dia in dialogs.Dialogs.Where(x => x.Peer is TLPeerChannel && x.UnreadCount > 0))
+                    while (true)
                     {
-                        var peer = dia.Peer as TLPeerChannel;
-                        //var userPeer = dia.Peer as TLPeerUser;
-                        //var userChat = dialogs.Users.OfType<TLUser>().First(x => x.Id == userPeer.UserId);
-                        var chat = dialogs.Chats.OfType<TLChannel>().FirstOrDefault(x => x.Id == peer.ChannelId
-                                                                                    && x.Title.Contains("24H"));
-                        if (chat != null)
-                        {
-                            var target = new TLInputPeerChannel() { ChannelId = chat.Id, AccessHash = (long)chat.AccessHash };
-                            var hist = await clientAccess.GetHistoryAsync(target, 0, -1, dia.UnreadCount);
+                        var dialogs = await client.GetUserDialogsAsync() as TLDialogs;
 
-                            Console.WriteLine("=====================================================================");
-                            Console.WriteLine("THIS IS:" + chat.Title + " WITH " + dia.UnreadCount + " UNREAD MESSAGES");
-                            var messagesLists = (hist as TLChannelMessages).Messages.ToList();
-                            foreach (var m in messagesLists)
+                        foreach (var dia in dialogs.Dialogs.Where(x => x.Peer is TLPeerChannel && x.UnreadCount > 0))
+                        {
+                            var peer = dia.Peer as TLPeerChannel;
+                            var chat = dialogs.Chats.OfType<TLChannel>().FirstOrDefault(x => x.Id == peer.ChannelId
+                                                                                        && x.Title.ToUpper().Contains("BOT MISTER X 24H"));
+                            if (chat != null)
                             {
-                                var me = (m as TLMessage);
-                                var result = me.Message.Split(new char[0], StringSplitOptions.RemoveEmptyEntries);
-                                for (int i = 0; i < result.Length; i++)
+                                var target = new TLInputPeerChannel() { ChannelId = chat.Id, AccessHash = (long)chat.AccessHash };
+                                var hist = await client.GetHistoryAsync(target, 0, -1, dia.UnreadCount);
+
+                                Console.WriteLine("=====================================================================");
+                                Console.WriteLine("THIS IS:" + chat.Title + " WITH " + dia.UnreadCount + " UNREAD MESSAGES");
+                                var messagesLists = (hist as TLChannelMessages).Messages.ToList();
+                                foreach (var m in messagesLists)
                                 {
-                                    var regxTimeFormat = new Regex(@"^(?=\d)(?:(?:31(?!.(?:0?[2469]|11))|(?:30|29)(?!.0?2)|
+                                    var me = (m as TLMessage);
+                                    var result = me.Message.Split(new char[0], StringSplitOptions.RemoveEmptyEntries);
+                                    for (int i = 0; i < result.Length; i++)
+                                    {
+                                        var regxTimeFormat = new Regex(@"^(?=\d)(?:(?:31(?!.(?:0?[2469]|11))|(?:30|29)(?!.0?2)|
                                         29(?=.0?2.(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579]
                                         [26])00)))(?:\x20|$))|(?:2[0-8]|1\d|0?[1-9]))([-./])(?:1[012]|0?[1-9])\1(?:1[6-9]|[2-9]\d)?\d\d
                                         (?:(?=\x20\d)\x20|$))?(((0?[1-9]|1[012])(:[0-5]\d){0,2}(\x20[AP]M))|([01]\d|2[0-3])(:[0-5]\d){1,2})?$");
 
-                                    if (!regxTimeFormat.IsMatch(result[i]))
-                                    {
-                                        var regxSpecialCharac = new Regex(@"[^0-9azA-Z:,%\/]");
-                                        if (regxSpecialCharac.IsMatch(result[i]))
+                                        if (!regxTimeFormat.IsMatch(result[i]))
                                         {
-                                            result = result.Where((source, index) => index != i).ToArray();
+                                            var regxSpecialCharac = new Regex(@"[^0-9azA-Z:,%\/]");
+                                            if (regxSpecialCharac.IsMatch(result[i]))
+                                            {
+                                                result = result.Where((source, index) => index != i).ToArray();
+                                            }
+                                        }
+                                    }
+
+                                    if (result.Length > 20 && !result[3].Contains("PARCIAL"))
+                                    {
+                                        var signal = new Signal();
+                                        signal.MessageId = Convert.ToInt64(me.Id);
+                                        signal.Currency = result[0].ToString().Equals("|") ? result[6].ToString() : result[0].ToString();
+                                        signal.CurrencyTime = result[1].ToString();
+                                        signal.Time = result[2].ToString();
+                                        signal.CurrencySignal = result[3].ToString();
+                                        signal.Date = result[4].ToString();
+                                        signal.CurrencyAssertPercentage1 = result[12].ToString();
+                                        signal.CurrencyAssertPercentage2 = result[14].ToString();
+                                        signal.CurrencyAssertPercentage3 = result[16].ToString();
+                                        signal.BackTest = GetBackTest(result);
+
+                                        if (signalsList.FirstOrDefault(x => x.MessageId == signal.MessageId) == null)
+                                        {
+                                            signalsList.Add(signal);
                                         }
                                     }
                                 }
+                            }
 
-                                if (result.Length > 20 && !result[4].Contains("PARCIAL"))
+                            var chat2 = dialogs.Chats.OfType<TLChannel>().FirstOrDefault(x => x.Title.ToUpper().Equals("TESTE"));
+                            if (chat2 != null)
+                            {
+                                var list = signalsList.Where(x => !sentSignalsList.Any(y => y.MessageId == x.MessageId)).OrderBy(x => x.MessageId).ToList();
+                                foreach (var item in list)
                                 {
-                                    var signal = new Signal();
-                                    signal.MessageId = Convert.ToInt64(me.Id);
-                                    signal.Currency = result[0].ToString().Equals("|") ? result[6].ToString() : result[0].ToString();
-                                    signal.CurrencyTime = result[1].ToString();
-                                    signal.Time = result[2].ToString();
-                                    signal.CurrencySignal = result[3].ToString();
-                                    signal.Date = result[4].ToString();
-                                    signal.CurrencyAssertPercentage1 = result[12].ToString();
-                                    signal.CurrencyAssertPercentage2 = result[14].ToString();
-                                    signal.CurrencyAssertPercentage3 = result[16].ToString();
-                                    signal.BackTest = GetBackTest(result);
-
-                                    if (signalsList.FirstOrDefault(x => x.MessageId == signal.MessageId) == null)
+                                    var currentDate = DateTime.Parse(item.Date).Date;
+                                    var time = DateTime.Now.AddHours(-3);//.AddMinutes(5);
+                                    var signalTime = new DateTime(Convert.ToInt32(item.Date.Substring(6, 4)),
+                                                        Convert.ToInt32(item.Date.Substring(3, 2)),
+                                                        Convert.ToInt32(item.Date.Substring(0, 2)),
+                                                        Convert.ToInt32(item.CurrencyTime.Substring(0, 2)),
+                                                        Convert.ToInt32(item.CurrencyTime.Substring(3, 2)), 00);
+                                    var percentage = Decimal.Round(decimal.Parse(item.CurrencyAssertPercentage1.Replace("%", string.Empty).Replace(",", ".")), 2);
+                                    if (percentage >= 60.0m && time.Date == currentDate)
                                     {
-                                        signalsList.Add(signal);
+                                        if (signalTime >= time && item.BackTest.Values.ElementAt(0).ToUpper().Contains("WIN S/ GALE")
+                                                               && item.BackTest.Values.ElementAt(1).ToUpper().Contains("WIN S/ GALE"))
+                                        {
+                                            var squareColor = item.CurrencySignal.Equals("CALL") ? "🟩 " + item.CurrencySignal + "\n\n"
+                                                                            : "🟥 " + item.CurrencySignal + "\n\n";
+
+                                            await client.SendMessageAsync(new TLInputPeerChannel()
+                                            {
+                                                ChannelId = chat2.Id,
+                                                AccessHash = chat2.AccessHash.Value
+                                            },
+                                                            string.Format("--- {0} ---\n" +
+                                                                "🇧🇷 ANGEL SIGNALS 🇧🇷\n" +
+                                                                "   🇨🇮 TRADER X 🇨🇮\n" +
+                                                                "================\n" +
+                                                                "💰 {1}\n" +
+                                                                "⏰ {2}\n" +
+                                                                "⏳ {3}\n" +
+                                                                "{4}" +
+                                                                "Sinal até gale 1."
+                                                                , item.Date, item.Currency
+                                                                , item.Time, item.CurrencyTime.Replace(",", ""), squareColor));
+
+                                            Console.WriteLine("=====================================================================");
+                                            Console.WriteLine(string.Format("--- {0} ---\n" +
+                                                                "🇧🇷 ANGEL SIGNALS 🇧🇷\n" +
+                                                                "   🇨🇮 TRADER X 🇨🇮\n" +
+                                                                "================\n" +
+                                                                "💰 {1}\n" +
+                                                                "⏰ {2}\n" +
+                                                                "⏳ {3}\n" +
+                                                                "{4}" +
+                                                                "Sinal até gale 1."
+                                                                , item.Date, item.Currency
+                                                                , item.Time, item.CurrencyTime.Replace(",", ""), squareColor));
+                                        }
                                     }
+                                    sentSignalsList.Add(item);
                                 }
-                                //mark message as read
-                                //else
-                                //{
-                                //    MarkMessageAsRead(clientAccess, chat.Id, (long)chat.AccessHash, (int)me.Id, dia.UnreadCount);
-                                //}
-                                //ForwardMessage(clientAccess, 1079068893, chat.Id, -4463481739700017704, me.Id);
-                                //Console.WriteLine((m as TLMessage).Message);
                             }
                         }
+                        await Task.Delay(30000);
+                    } 
+                }
+            }
+            else
+            {
+                var store = new FileSessionStore();
+                TelegramClient clientAccess = new TelegramClient(2954623, hash, store, fullPathToDat);
+                await clientAccess.ConnectAsync();
 
-                        var chat2 = dialogs.Chats.OfType<TLChannel>().FirstOrDefault(x => x.Title.ToUpper().Contains("TESTE"));
-                        if (chat2 != null)
+                if (clientAccess.IsUserAuthorized())
+                {
+                    while (true)
+                    {
+                        //while (seconds < 20 && seconds != 0)
+                        //{
+                        //    await Task.Delay(2000);
+                        //    seconds += 2;
+                        //}
+                        var dialogs = await clientAccess.GetUserDialogsAsync() as TLDialogs;
+                        //seconds = 0;
+
+                        foreach (var dia in dialogs.Dialogs.Where(x => x.Peer is TLPeerChannel && x.UnreadCount > 0))
                         {
-                            var list = signalsList.Where(x => !sentSignalsList.Any(y => y.MessageId == x.MessageId)).OrderBy(x => x.MessageId).ToList();
-                            foreach (var item in list)
+                            var peer = dia.Peer as TLPeerChannel;
+                            //var userPeer = dia.Peer as TLPeerUser;
+                            //var userChat = dialogs.Users.OfType<TLUser>().First(x => x.Id == userPeer.UserId);
+                            var chat = dialogs.Chats.OfType<TLChannel>().FirstOrDefault(x => x.Id == peer.ChannelId
+                                                                                        && x.Title.ToUpper().Contains("BOT MISTER X 24H"));
+                            if (chat != null)
                             {
-                                var currentDate = DateTime.Parse(item.Date).Date;
-                                var time = DateTime.Now.AddHours(-3);//.AddMinutes(5);
-                                var signalTime = new DateTime(Convert.ToInt32(item.Date.Substring(6, 4)),
-                                                    Convert.ToInt32(item.Date.Substring(3, 2)),
-                                                    Convert.ToInt32(item.Date.Substring(0, 2)),
-                                                    Convert.ToInt32(item.CurrencyTime.Substring(0, 2)),
-                                                    Convert.ToInt32(item.CurrencyTime.Substring(3, 2)), 00);
-                                var percentage = Decimal.Round(decimal.Parse(item.CurrencyAssertPercentage1.Replace("%", string.Empty).Replace(",", ".")), 2);
-                                if (percentage >= 60.0m && time.Date == currentDate)
+                                var target = new TLInputPeerChannel() { ChannelId = chat.Id, AccessHash = (long)chat.AccessHash };
+                                var hist = await clientAccess.GetHistoryAsync(target, 0, -1, dia.UnreadCount);
+
+                                Console.WriteLine("=====================================================================");
+                                Console.WriteLine("THIS IS:" + chat.Title + " WITH " + dia.UnreadCount + " UNREAD MESSAGES");
+                                var messagesLists = (hist as TLChannelMessages).Messages.ToList();
+                                foreach (var m in messagesLists)
                                 {
-                                    if (signalTime >= time && item.BackTest.Values.ElementAt(0).ToUpper().Contains("WIN S/ GALE")
-                                                           && item.BackTest.Values.ElementAt(1).ToUpper().Contains("WIN S/ GALE"))
+                                    var me = (m as TLMessage);
+                                    var result = me.Message.Split(new char[0], StringSplitOptions.RemoveEmptyEntries);
+                                    for (int i = 0; i < result.Length; i++)
                                     {
-                                        var squareColor = item.CurrencySignal.Equals("CALL") ? "🟩 " + item.CurrencySignal + "\n\n"
-                                                                        : "🟥 " + item.CurrencySignal + "\n\n";
+                                        var regxTimeFormat = new Regex(@"^(?=\d)(?:(?:31(?!.(?:0?[2469]|11))|(?:30|29)(?!.0?2)|
+                                        29(?=.0?2.(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579]
+                                        [26])00)))(?:\x20|$))|(?:2[0-8]|1\d|0?[1-9]))([-./])(?:1[012]|0?[1-9])\1(?:1[6-9]|[2-9]\d)?\d\d
+                                        (?:(?=\x20\d)\x20|$))?(((0?[1-9]|1[012])(:[0-5]\d){0,2}(\x20[AP]M))|([01]\d|2[0-3])(:[0-5]\d){1,2})?$");
 
-                                        await clientAccess.SendMessageAsync(new TLInputPeerChannel()
+                                        if (!regxTimeFormat.IsMatch(result[i]))
                                         {
-                                            ChannelId = chat2.Id,
-                                            AccessHash = chat2.AccessHash.Value
-                                        },
-                                                        string.Format("--- {0} ---\n" +
-                                                            "🇧🇷 ANGEL SIGNALS 🇧🇷\n" +
-                                                            "   🇨🇮 TRADER X 🇨🇮\n" +
-                                                            "================\n" +
-                                                            "💰 {1}\n" +
-                                                            "⏰ {2}\n" +
-                                                            "⏳ {3}\n" +
-                                                            "{4}" +
-                                                            "Sinal até gale 1."
-                                                            , item.Date, item.Currency
-                                                            , item.Time, item.CurrencyTime.Replace(",", ""), squareColor));
+                                            var regxSpecialCharac = new Regex(@"[^0-9azA-Z:,%\/]");
+                                            if (regxSpecialCharac.IsMatch(result[i]))
+                                            {
+                                                result = result.Where((source, index) => index != i).ToArray();
+                                            }
+                                        }
+                                    }
 
-                                        Console.WriteLine("=====================================================================");
-                                        Console.WriteLine(string.Format("--- {0} ---\n" +
-                                                            "🇧🇷 ANGEL SIGNALS 🇧🇷\n" +
-                                                            "   🇨🇮 TRADER X 🇨🇮\n" +
-                                                            "================\n" +
-                                                            "💰 {1}\n" +
-                                                            "⏰ {2}\n" +
-                                                            "⏳ {3}\n" +
-                                                            "{4}" +
-                                                            "Sinal até gale 1."
-                                                            , item.Date, item.Currency
-                                                            , item.Time, item.CurrencyTime.Replace(",", ""), squareColor));
+                                    if (result.Length > 20 && !result[3].Contains("PARCIAL"))
+                                    {
+                                        var signal = new Signal();
+                                        signal.MessageId = Convert.ToInt64(me.Id);
+                                        signal.Currency = result[0].ToString().Equals("|") ? result[6].ToString() : result[0].ToString();
+                                        signal.CurrencyTime = result[1].ToString();
+                                        signal.Time = result[2].ToString();
+                                        signal.CurrencySignal = result[3].ToString();
+                                        signal.Date = result[4].ToString();
+                                        signal.CurrencyAssertPercentage1 = result[12].ToString();
+                                        signal.CurrencyAssertPercentage2 = result[14].ToString();
+                                        signal.CurrencyAssertPercentage3 = result[16].ToString();
+                                        signal.BackTest = GetBackTest(result);
 
+                                        if (signalsList.FirstOrDefault(x => x.MessageId == signal.MessageId) == null)
+                                        {
+                                            signalsList.Add(signal);
+                                        }
+                                    }
+                                    //mark message as read
+                                    //else
+                                    //{
+                                    //    MarkMessageAsRead(clientAccess, chat.Id, (long)chat.AccessHash, (int)me.Id, dia.UnreadCount);
+                                    //}
+                                    //ForwardMessage(clientAccess, 1079068893, chat.Id, -4463481739700017704, me.Id);
+                                    //Console.WriteLine((m as TLMessage).Message);
+                                }
+                            }
+
+                            var chat2 = dialogs.Chats.OfType<TLChannel>().FirstOrDefault(x => x.Title.ToUpper().Equals("TESTE"));
+                            if (chat2 != null)
+                            {
+                                var list = signalsList.Where(x => !sentSignalsList.Any(y => y.MessageId == x.MessageId)).OrderBy(x => x.MessageId).ToList();
+                                foreach (var item in list)
+                                {
+                                    var currentDate = DateTime.Parse(item.Date).Date;
+                                    var time = DateTime.Now.AddHours(-3);//.AddMinutes(5);
+                                    var signalTime = new DateTime(Convert.ToInt32(item.Date.Substring(6, 4)),
+                                                        Convert.ToInt32(item.Date.Substring(3, 2)),
+                                                        Convert.ToInt32(item.Date.Substring(0, 2)),
+                                                        Convert.ToInt32(item.CurrencyTime.Substring(0, 2)),
+                                                        Convert.ToInt32(item.CurrencyTime.Substring(3, 2)), 00);
+                                    var percentage = Decimal.Round(decimal.Parse(item.CurrencyAssertPercentage1.Replace("%", string.Empty).Replace(",", ".")), 2);
+                                    if (percentage >= 60.0m && time.Date == currentDate)
+                                    {
+                                        if (signalTime >= time && item.BackTest.Values.ElementAt(0).ToUpper().Contains("WIN S/ GALE")
+                                                               && item.BackTest.Values.ElementAt(1).ToUpper().Contains("WIN S/ GALE"))
+                                        {
+                                            var squareColor = item.CurrencySignal.Equals("CALL") ? "🟩 " + item.CurrencySignal + "\n\n"
+                                                                            : "🟥 " + item.CurrencySignal + "\n\n";
+
+                                            await clientAccess.SendMessageAsync(new TLInputPeerChannel()
+                                            {
+                                                ChannelId = chat2.Id,
+                                                AccessHash = chat2.AccessHash.Value
+                                            },
+                                                            string.Format("--- {0} ---\n" +
+                                                                "🇧🇷 ANGEL SIGNALS 🇧🇷\n" +
+                                                                "   🇨🇮 TRADER X 🇨🇮\n" +
+                                                                "================\n" +
+                                                                "💰 {1}\n" +
+                                                                "⏰ {2}\n" +
+                                                                "⏳ {3}\n" +
+                                                                "{4}" +
+                                                                "Sinal até gale 1."
+                                                                , item.Date, item.Currency
+                                                                , item.Time, item.CurrencyTime.Replace(",", ""), squareColor));
+
+                                            Console.WriteLine("=====================================================================");
+                                            Console.WriteLine(string.Format("--- {0} ---\n" +
+                                                                "🇧🇷 ANGEL SIGNALS 🇧🇷\n" +
+                                                                "   🇨🇮 TRADER X 🇨🇮\n" +
+                                                                "================\n" +
+                                                                "💰 {1}\n" +
+                                                                "⏰ {2}\n" +
+                                                                "⏳ {3}\n" +
+                                                                "{4}" +
+                                                                "Sinal até gale 1."
+                                                                , item.Date, item.Currency
+                                                                , item.Time, item.CurrencyTime.Replace(",", ""), squareColor));
+
+                                            //mark message as read
+                                            //MarkMessageAsRead(clientAccess, chat.Id, (long)chat.AccessHash, (int)item.MessageId, dia.UnreadCount);
+                                        }
                                         //mark message as read
-                                        //MarkMessageAsRead(clientAccess, chat.Id, (long)chat.AccessHash, (int)item.MessageId, dia.UnreadCount);
+                                        //else
+                                        //{
+                                        //    MarkMessageAsRead(clientAccess, chat.Id, (long)chat.AccessHash, (int)item.MessageId, dia.UnreadCount);
+                                        //}
                                     }
                                     //mark message as read
                                     //else
                                     //{
                                     //    MarkMessageAsRead(clientAccess, chat.Id, (long)chat.AccessHash, (int)item.MessageId, dia.UnreadCount);
                                     //}
-                                }
-                                //mark message as read
-                                //else
-                                //{
-                                //    MarkMessageAsRead(clientAccess, chat.Id, (long)chat.AccessHash, (int)item.MessageId, dia.UnreadCount);
-                                //}
-                                sentSignalsList.Add(item);
+                                    sentSignalsList.Add(item);
 
-                                //await Task.Delay(500);
-                                //seconds += 1;                                
+                                    //await Task.Delay(500);
+                                    //seconds += 1;                                
+                                }
                             }
                         }
+                        await Task.Delay(30000);
                     }
-                    await Task.Delay(30000);
                 }
             }
         }
 
         public async static void MarkMessageAsRead(TelegramClient client, int chatId, long hashCode, int messageId, int unreadCount)
         {
-            var ch = new TLInputChannel() { ChannelId = chatId, AccessHash = hashCode };
-            var targetPeer = new TLInputPeerUser { UserId = chatId, AccessHash = hashCode };
+            //var ch = new TLInputChannel() { ChannelId = chatId, AccessHash = hashCode };
+            //var targetPeer = new TLInputPeerUser { UserId = chatId, AccessHash = hashCode };
 
-            var markAsRead = new TeleSharp.TL.Channels.TLRequestReadHistory()
-            {
-                Channel = ch,
-                MaxId = -1,
-                Dirty = true,
-                MessageId = messageId,
-                ConfirmReceived = true,
-                Sequence = unreadCount
-            };
-            var readed = await client.SendRequestAsync<bool>(markAsRead);
+            //var markAsRead = new TeleSharp.TL.Channels.TLRequestReadHistory()
+            //{
+            //    Channel = ch,
+            //    MaxId = -1,
+            //    Dirty = true,
+            //    MessageId = messageId,
+            //    ConfirmReceived = true,
+            //    Sequence = unreadCount
+            //};
+            //var readed = await client.SendRequestAsync<bool>(markAsRead);
 
             //var a = new TeleSharp.TL.Channels.TLRequestReadHistory()
             //{
@@ -219,6 +343,7 @@ namespace TelegramConsoleApp
             //};
             //var affectedMessages = await client.SendRequestAsync<TLAffectedMessages>(a);
         }
+
         public static Dictionary<DateTime, string> GetBackTest(string[] result)
         {
             if (result[19].Equals("HIT"))
@@ -233,11 +358,11 @@ namespace TelegramConsoleApp
                             {
                                 return new Dictionary<DateTime, string>
                                         {
-                                            { Convert.ToDateTime(result[18]), string.Format("{0}", result[19]) },
-                                            { Convert.ToDateTime(result[20]), string.Format("{0}", result[21]) },
-                                            { Convert.ToDateTime(result[22]), string.Format("{0}", result[23]) },
-                                            { Convert.ToDateTime(result[24]), string.Format("{0}", result[25]) },
-                                            { Convert.ToDateTime(result[26]), string.Format("{0}", result[27]) }
+                                            { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0}", result[19]) },
+                                            { new DateTime(2021, int.Parse(result[20].Substring(3, 2)), int.Parse(result[20].Substring(0, 2))), string.Format("{0}", result[21]) },
+                                            { new DateTime(2021, int.Parse(result[22].Substring(3, 2)), int.Parse(result[22].Substring(0, 2))), string.Format("{0}", result[23]) },
+                                            { new DateTime(2021, int.Parse(result[24].Substring(3, 2)), int.Parse(result[24].Substring(0, 2))), string.Format("{0}", result[25]) },
+                                            { new DateTime(2021, int.Parse(result[26].Substring(3, 2)), int.Parse(result[26].Substring(0, 2))), string.Format("{0}", result[27]) }
                                         };
 
                             }
@@ -245,11 +370,11 @@ namespace TelegramConsoleApp
                             {
                                 return new Dictionary<DateTime, string>
                                         {
-                                            { Convert.ToDateTime(result[18]), string.Format("{0}", result[19]) },
-                                            { Convert.ToDateTime(result[20]), string.Format("{0}", result[21]) },
-                                            { Convert.ToDateTime(result[22]), string.Format("{0}", result[23]) },
-                                            { Convert.ToDateTime(result[24]), string.Format("{0}", result[25]) },
-                                            { Convert.ToDateTime(result[26]), string.Format("{0} {1} {2}", result[27], result[28], result[29]) }
+                                            { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0}", result[19]) },
+                                            { new DateTime(2021, int.Parse(result[20].Substring(3, 2)), int.Parse(result[20].Substring(0, 2))), string.Format("{0}", result[21]) },
+                                            { new DateTime(2021, int.Parse(result[22].Substring(3, 2)), int.Parse(result[22].Substring(0, 2))), string.Format("{0}", result[23]) },
+                                            { new DateTime(2021, int.Parse(result[24].Substring(3, 2)), int.Parse(result[24].Substring(0, 2))), string.Format("{0}", result[25]) },
+                                            { new DateTime(2021, int.Parse(result[26].Substring(3, 2)), int.Parse(result[26].Substring(0, 2))), string.Format("{0} {1} {2}", result[27], result[28], result[29]) }
                                         };
                             }
                         }
@@ -257,11 +382,11 @@ namespace TelegramConsoleApp
                         {
                             return new Dictionary<DateTime, string>
                                     {
-                                        { Convert.ToDateTime(result[18]), string.Format("{0}", result[19]) },
-                                        { Convert.ToDateTime(result[20]), string.Format("{0}", result[21]) },
-                                        { Convert.ToDateTime(result[22]), string.Format("{0}", result[23]) },
-                                        { Convert.ToDateTime(result[24]), string.Format("{0} {1} {2}", result[25], result[26], result[27]) },
-                                        { Convert.ToDateTime(result[28]), string.Format("{0} {1} {2}", result[29], result[30], result[31]) }
+                                        { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0}", result[19]) },
+                                        { new DateTime(2021, int.Parse(result[20].Substring(3, 2)), int.Parse(result[20].Substring(0, 2))), string.Format("{0}", result[21]) },
+                                        { new DateTime(2021, int.Parse(result[22].Substring(3, 2)), int.Parse(result[22].Substring(0, 2))), string.Format("{0}", result[23]) },
+                                        { new DateTime(2021, int.Parse(result[24].Substring(3, 2)), int.Parse(result[24].Substring(0, 2))), string.Format("{0} {1} {2}", result[25], result[26], result[27]) },
+                                        { new DateTime(2021, int.Parse(result[28].Substring(3, 2)), int.Parse(result[28].Substring(0, 2))), string.Format("{0} {1} {2}", result[29], result[30], result[31]) }
                                     };
                         }
                     }
@@ -269,11 +394,11 @@ namespace TelegramConsoleApp
                     {
                         return new Dictionary<DateTime, string>
                                 {
-                                    { Convert.ToDateTime(result[18]), string.Format("{0}", result[19]) },
-                                    { Convert.ToDateTime(result[20]), string.Format("{0}", result[21]) },
-                                    { Convert.ToDateTime(result[22]), string.Format("{0} {1} {2}", result[23], result[24], result[25]) },
-                                    { Convert.ToDateTime(result[26]), string.Format("{0} {1} {2}", result[27], result[28], result[29]) },
-                                    { Convert.ToDateTime(result[30]), string.Format("{0} {1} {2}", result[31], result[32], result[33]) }
+                                    { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0}", result[19]) },
+                                    { new DateTime(2021, int.Parse(result[20].Substring(3, 2)), int.Parse(result[20].Substring(0, 2))), string.Format("{0}", result[21]) },
+                                    { new DateTime(2021, int.Parse(result[22].Substring(3, 2)), int.Parse(result[22].Substring(0, 2))), string.Format("{0} {1} {2}", result[23], result[24], result[25]) },
+                                    { new DateTime(2021, int.Parse(result[26].Substring(3, 2)), int.Parse(result[26].Substring(0, 2))), string.Format("{0} {1} {2}", result[27], result[28], result[29]) },
+                                    { new DateTime(2021, int.Parse(result[30].Substring(3, 2)), int.Parse(result[30].Substring(0, 2))), string.Format("{0} {1} {2}", result[31], result[32], result[33]) }
                                 };
                     }
                 }
@@ -287,22 +412,22 @@ namespace TelegramConsoleApp
                             {
                                 return new Dictionary<DateTime, string>
                                 {
-                                    { Convert.ToDateTime(result[18]), string.Format("{0}", result[19]) },
-                                    { Convert.ToDateTime(result[20]), string.Format("{0} {1} {2}", result[21], result[22], result[23]) },
-                                    { Convert.ToDateTime(result[24]), string.Format("{0}", result[25]) },
-                                    { Convert.ToDateTime(result[26]), string.Format("{0}", result[27]) },
-                                    { Convert.ToDateTime(result[28]), string.Format("{0}", result[29]) }
+                                    { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0}", result[19]) },
+                                    { new DateTime(2021, int.Parse(result[20].Substring(3, 2)), int.Parse(result[20].Substring(0, 2))), string.Format("{0} {1} {2}", result[21], result[22], result[23]) },
+                                    { new DateTime(2021, int.Parse(result[24].Substring(3, 2)), int.Parse(result[24].Substring(0, 2))), string.Format("{0}", result[25]) },
+                                    { new DateTime(2021, int.Parse(result[26].Substring(3, 2)), int.Parse(result[26].Substring(0, 2))), string.Format("{0}", result[27]) },
+                                    { new DateTime(2021, int.Parse(result[28].Substring(3, 2)), int.Parse(result[28].Substring(0, 2))), string.Format("{0}", result[29]) }
                                 };
                             }
                             else
                             {
                                 return new Dictionary<DateTime, string>
                                 {
-                                    { Convert.ToDateTime(result[18]), string.Format("{0}", result[19]) },
-                                    { Convert.ToDateTime(result[20]), string.Format("{0} {1} {2}", result[21], result[22], result[23]) },
-                                    { Convert.ToDateTime(result[24]), string.Format("{0}", result[25]) },
-                                    { Convert.ToDateTime(result[26]), string.Format("{0}", result[27]) },
-                                    { Convert.ToDateTime(result[28]), string.Format("{0} {1} {2}", result[29], result[30], result[31]) }
+                                    { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0}", result[19]) },
+                                    { new DateTime(2021, int.Parse(result[20].Substring(3, 2)), int.Parse(result[20].Substring(0, 2))), string.Format("{0} {1} {2}", result[21], result[22], result[23]) },
+                                    { new DateTime(2021, int.Parse(result[24].Substring(3, 2)), int.Parse(result[24].Substring(0, 2))), string.Format("{0}", result[25]) },
+                                    { new DateTime(2021, int.Parse(result[26].Substring(3, 2)), int.Parse(result[26].Substring(0, 2))), string.Format("{0}", result[27]) },
+                                    { new DateTime(2021, int.Parse(result[28].Substring(3, 2)), int.Parse(result[28].Substring(0, 2))), string.Format("{0} {1} {2}", result[29], result[30], result[31]) }
                                 };
                             }
                         }
@@ -312,22 +437,22 @@ namespace TelegramConsoleApp
                             {
                                 return new Dictionary<DateTime, string>
                                 {
-                                    { Convert.ToDateTime(result[18]), string.Format("{0}", result[19]) },
-                                    { Convert.ToDateTime(result[20]), string.Format("{0} {1} {2}", result[21], result[22], result[23]) },
-                                    { Convert.ToDateTime(result[24]), string.Format("{0}", result[25]) },
-                                    { Convert.ToDateTime(result[26]), string.Format("{0} {1} {2}", result[27], result[28], result[29]) },
-                                    { Convert.ToDateTime(result[30]), string.Format("{0}", result[31]) }
+                                    { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0}", result[19]) },
+                                    { new DateTime(2021, int.Parse(result[20].Substring(3, 2)), int.Parse(result[20].Substring(0, 2))), string.Format("{0} {1} {2}", result[21], result[22], result[23]) },
+                                    { new DateTime(2021, int.Parse(result[24].Substring(3, 2)), int.Parse(result[24].Substring(0, 2))), string.Format("{0}", result[25]) },
+                                    { new DateTime(2021, int.Parse(result[26].Substring(3, 2)), int.Parse(result[26].Substring(0, 2))), string.Format("{0} {1} {2}", result[27], result[28], result[29]) },
+                                    { new DateTime(2021, int.Parse(result[30].Substring(3, 2)), int.Parse(result[30].Substring(0, 2))), string.Format("{0}", result[31]) }
                                 };
                             }
                             else
                             {
                                 return new Dictionary<DateTime, string>
                                 {
-                                    { Convert.ToDateTime(result[18]), string.Format("{0}", result[19]) },
-                                    { Convert.ToDateTime(result[20]), string.Format("{0} {1} {2}", result[21], result[22], result[23]) },
-                                    { Convert.ToDateTime(result[24]), string.Format("{0}", result[25]) },
-                                    { Convert.ToDateTime(result[26]), string.Format("{0} {1} {2}", result[27], result[28], result[29]) },
-                                    { Convert.ToDateTime(result[30]), string.Format("{0} {1} {2}", result[31], result[32], result[33]) }
+                                    { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0}", result[19]) },
+                                    { new DateTime(2021, int.Parse(result[20].Substring(3, 2)), int.Parse(result[20].Substring(0, 2))), string.Format("{0} {1} {2}", result[21], result[22], result[23]) },
+                                    { new DateTime(2021, int.Parse(result[24].Substring(3, 2)), int.Parse(result[24].Substring(0, 2))), string.Format("{0}", result[25]) },
+                                    { new DateTime(2021, int.Parse(result[26].Substring(3, 2)), int.Parse(result[26].Substring(0, 2))), string.Format("{0} {1} {2}", result[27], result[28], result[29]) },
+                                    { new DateTime(2021, int.Parse(result[30].Substring(3, 2)), int.Parse(result[30].Substring(0, 2))), string.Format("{0} {1} {2}", result[31], result[32], result[33]) }
                                 };
                             }
                         }
@@ -340,22 +465,22 @@ namespace TelegramConsoleApp
                             {
                                 return new Dictionary<DateTime, string>
                                 {
-                                    { Convert.ToDateTime(result[18]), string.Format("{0}", result[19]) },
-                                    { Convert.ToDateTime(result[20]), string.Format("{0} {1} {2}", result[21], result[22], result[23]) },
-                                    { Convert.ToDateTime(result[24]), string.Format("{0} {1} {2}", result[25], result[26], result[27]) },
-                                    { Convert.ToDateTime(result[28]), string.Format("{0}", result[29]) },
-                                    { Convert.ToDateTime(result[30]), string.Format("{0}", result[31]) }
+                                    { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0}", result[19]) },
+                                    { new DateTime(2021, int.Parse(result[20].Substring(3, 2)), int.Parse(result[20].Substring(0, 2))), string.Format("{0} {1} {2}", result[21], result[22], result[23]) },
+                                    { new DateTime(2021, int.Parse(result[24].Substring(3, 2)), int.Parse(result[24].Substring(0, 2))), string.Format("{0} {1} {2}", result[25], result[26], result[27]) },
+                                    { new DateTime(2021, int.Parse(result[28].Substring(3, 2)), int.Parse(result[28].Substring(0, 2))), string.Format("{0}", result[29]) },
+                                    { new DateTime(2021, int.Parse(result[30].Substring(3, 2)), int.Parse(result[30].Substring(0, 2))), string.Format("{0}", result[31]) }
                                 };
                             }
                             else
                             {
                                 return new Dictionary<DateTime, string>
                                 {
-                                    { Convert.ToDateTime(result[18]), string.Format("{0}", result[19]) },
-                                    { Convert.ToDateTime(result[20]), string.Format("{0} {1} {2}", result[21], result[22], result[23]) },
-                                    { Convert.ToDateTime(result[24]), string.Format("{0} {1} {2}", result[25], result[26], result[27]) },
-                                    { Convert.ToDateTime(result[28]), string.Format("{0}", result[29]) },
-                                    { Convert.ToDateTime(result[30]), string.Format("{0} {1} {2}", result[31], result[32], result[33]) }
+                                    { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0}", result[19]) },
+                                    { new DateTime(2021, int.Parse(result[20].Substring(3, 2)), int.Parse(result[20].Substring(0, 2))), string.Format("{0} {1} {2}", result[21], result[22], result[23]) },
+                                    { new DateTime(2021, int.Parse(result[24].Substring(3, 2)), int.Parse(result[24].Substring(0, 2))), string.Format("{0} {1} {2}", result[25], result[26], result[27]) },
+                                    { new DateTime(2021, int.Parse(result[28].Substring(3, 2)), int.Parse(result[28].Substring(0, 2))), string.Format("{0}", result[29]) },
+                                    { new DateTime(2021, int.Parse(result[30].Substring(3, 2)), int.Parse(result[30].Substring(0, 2))), string.Format("{0} {1} {2}", result[31], result[32], result[33]) }
                                 };
                             }
                         }
@@ -365,22 +490,22 @@ namespace TelegramConsoleApp
                             {
                                 return new Dictionary<DateTime, string>
                                 {
-                                    { Convert.ToDateTime(result[18]), string.Format("{0}", result[19]) },
-                                    { Convert.ToDateTime(result[20]), string.Format("{0} {1} {2}", result[21], result[22], result[23]) },
-                                    { Convert.ToDateTime(result[24]), string.Format("{0} {1} {2}", result[25], result[26], result[27]) },
-                                    { Convert.ToDateTime(result[28]), string.Format("{0} {1} {2}", result[29], result[30], result[31]) },
-                                    { Convert.ToDateTime(result[32]), string.Format("{0}", result[33]) }
+                                    { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0}", result[19]) },
+                                    { new DateTime(2021, int.Parse(result[20].Substring(3, 2)), int.Parse(result[20].Substring(0, 2))), string.Format("{0} {1} {2}", result[21], result[22], result[23]) },
+                                    { new DateTime(2021, int.Parse(result[24].Substring(3, 2)), int.Parse(result[24].Substring(0, 2))), string.Format("{0} {1} {2}", result[25], result[26], result[27]) },
+                                    { new DateTime(2021, int.Parse(result[28].Substring(3, 2)), int.Parse(result[28].Substring(0, 2))), string.Format("{0} {1} {2}", result[29], result[30], result[31]) },
+                                    { new DateTime(2021, int.Parse(result[32].Substring(3, 2)), int.Parse(result[32].Substring(0, 2))), string.Format("{0}", result[33]) }
                                 };
                             }
                             else
                             {
                                 return new Dictionary<DateTime, string>
                                 {
-                                    { Convert.ToDateTime(result[18]), string.Format("{0}", result[19]) },
-                                    { Convert.ToDateTime(result[20]), string.Format("{0} {1} {2}", result[21], result[22], result[23]) },
-                                    { Convert.ToDateTime(result[24]), string.Format("{0} {1} {2}", result[25], result[26], result[27]) },
-                                    { Convert.ToDateTime(result[28]), string.Format("{0} {1} {2}", result[29], result[30], result[31]) },
-                                    { Convert.ToDateTime(result[32]), string.Format("{0} {1} {2}", result[33], result[34], result[35]) }
+                                    { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0}", result[19]) },
+                                    { new DateTime(2021, int.Parse(result[20].Substring(3, 2)), int.Parse(result[20].Substring(0, 2))), string.Format("{0} {1} {2}", result[21], result[22], result[23]) },
+                                    { new DateTime(2021, int.Parse(result[24].Substring(3, 2)), int.Parse(result[24].Substring(0, 2))), string.Format("{0} {1} {2}", result[25], result[26], result[27]) },
+                                    { new DateTime(2021, int.Parse(result[28].Substring(3, 2)), int.Parse(result[28].Substring(0, 2))), string.Format("{0} {1} {2}", result[29], result[30], result[31]) },
+                                    { new DateTime(2021, int.Parse(result[32].Substring(3, 2)), int.Parse(result[32].Substring(0, 2))), string.Format("{0} {1} {2}", result[33], result[34], result[35]) }
                                 };
                             }
                         }
@@ -399,22 +524,22 @@ namespace TelegramConsoleApp
                             {
                                 return new Dictionary<DateTime, string>
                                 {
-                                    { Convert.ToDateTime(result[18]), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
-                                    { Convert.ToDateTime(result[22]), string.Format("{0}",result[23])},
-                                    { Convert.ToDateTime(result[24]), string.Format("{0}",result[25])},
-                                    { Convert.ToDateTime(result[26]), string.Format("{0}",result[27])},
-                                    { Convert.ToDateTime(result[28]), string.Format("{0}",result[29])},
+                                    { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
+                                    { new DateTime(2021, int.Parse(result[22].Substring(3, 2)), int.Parse(result[22].Substring(0, 2))), string.Format("{0}",result[23])},
+                                    { new DateTime(2021, int.Parse(result[24].Substring(3, 2)), int.Parse(result[24].Substring(0, 2))), string.Format("{0}",result[25])},
+                                    { new DateTime(2021, int.Parse(result[26].Substring(3, 2)), int.Parse(result[26].Substring(0, 2))), string.Format("{0}",result[27])},
+                                    { new DateTime(2021, int.Parse(result[28].Substring(3, 2)), int.Parse(result[28].Substring(0, 2))), string.Format("{0}",result[29])},
                                 };
                             }
                             else
                             {
                                 return new Dictionary<DateTime, string>
                                 {
-                                    { Convert.ToDateTime(result[18]), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
-                                    { Convert.ToDateTime(result[22]), string.Format("{0}",result[23])},
-                                    { Convert.ToDateTime(result[24]), string.Format("{0}",result[25])},
-                                    { Convert.ToDateTime(result[26]), string.Format("{0}",result[27])},
-                                    { Convert.ToDateTime(result[28]), string.Format("{0} {1} {2}",result[29], result[30], result[31])},
+                                    { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
+                                    { new DateTime(2021, int.Parse(result[22].Substring(3, 2)), int.Parse(result[22].Substring(0, 2))), string.Format("{0}",result[23])},
+                                    { new DateTime(2021, int.Parse(result[24].Substring(3, 2)), int.Parse(result[24].Substring(0, 2))), string.Format("{0}",result[25])},
+                                    { new DateTime(2021, int.Parse(result[26].Substring(3, 2)), int.Parse(result[26].Substring(0, 2))), string.Format("{0}",result[27])},
+                                    { new DateTime(2021, int.Parse(result[28].Substring(3, 2)), int.Parse(result[28].Substring(0, 2))), string.Format("{0} {1} {2}",result[29], result[30], result[31])},
                                 };
                             }
                         }
@@ -422,11 +547,11 @@ namespace TelegramConsoleApp
                         {
                             return new Dictionary<DateTime, string>
                             {
-                                { Convert.ToDateTime(result[18]), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
-                                { Convert.ToDateTime(result[22]), string.Format("{0}",result[23])},
-                                { Convert.ToDateTime(result[24]), string.Format("{0}",result[25])},
-                                { Convert.ToDateTime(result[26]), string.Format("{0} {1} {2}",result[27], result[28], result[29])},
-                                { Convert.ToDateTime(result[30]), string.Format("{0} {1} {2}",result[31], result[32], result[33])},
+                                { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
+                                { new DateTime(2021, int.Parse(result[22].Substring(3, 2)), int.Parse(result[22].Substring(0, 2))), string.Format("{0}",result[23])},
+                                { new DateTime(2021, int.Parse(result[24].Substring(3, 2)), int.Parse(result[24].Substring(0, 2))), string.Format("{0}",result[25])},
+                                { new DateTime(2021, int.Parse(result[26].Substring(3, 2)), int.Parse(result[26].Substring(0, 2))), string.Format("{0} {1} {2}",result[27], result[28], result[29])},
+                                { new DateTime(2021, int.Parse(result[30].Substring(3, 2)), int.Parse(result[30].Substring(0, 2))), string.Format("{0} {1} {2}",result[31], result[32], result[33])},
                             };
                         }
                     }
@@ -438,22 +563,22 @@ namespace TelegramConsoleApp
                             {
                                 return new Dictionary<DateTime, string>
                                 {
-                                    { Convert.ToDateTime(result[18]), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
-                                    { Convert.ToDateTime(result[22]), string.Format("{0}",result[23])},
-                                    { Convert.ToDateTime(result[24]), string.Format("{0} {1} {2}",result[25], result[26], result[27])},
-                                    { Convert.ToDateTime(result[28]), string.Format("{0}",result[29])},
-                                    { Convert.ToDateTime(result[30]), string.Format("{0}",result[31])},
+                                    { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
+                                    { new DateTime(2021, int.Parse(result[22].Substring(3, 2)), int.Parse(result[22].Substring(0, 2))), string.Format("{0}",result[23])},
+                                    { new DateTime(2021, int.Parse(result[24].Substring(3, 2)), int.Parse(result[24].Substring(0, 2))), string.Format("{0} {1} {2}",result[25], result[26], result[27])},
+                                    { new DateTime(2021, int.Parse(result[28].Substring(3, 2)), int.Parse(result[28].Substring(0, 2))), string.Format("{0}",result[29])},
+                                    { new DateTime(2021, int.Parse(result[30].Substring(3, 2)), int.Parse(result[30].Substring(0, 2))), string.Format("{0}",result[31])},
                                 };
                             }
                             else
                             {
                                 return new Dictionary<DateTime, string>
                                 {
-                                    { Convert.ToDateTime(result[18]), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
-                                    { Convert.ToDateTime(result[22]), string.Format("{0}",result[23])},
-                                    { Convert.ToDateTime(result[24]), string.Format("{0} {1} {2}",result[25], result[26], result[27])},
-                                    { Convert.ToDateTime(result[28]), string.Format("{0}",result[29])},
-                                    { Convert.ToDateTime(result[30]), string.Format("{0} {1} {2}",result[31], result[32], result[33])},
+                                    { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
+                                    { new DateTime(2021, int.Parse(result[22].Substring(3, 2)), int.Parse(result[22].Substring(0, 2))), string.Format("{0}",result[23])},
+                                    { new DateTime(2021, int.Parse(result[24].Substring(3, 2)), int.Parse(result[24].Substring(0, 2))), string.Format("{0} {1} {2}",result[25], result[26], result[27])},
+                                    { new DateTime(2021, int.Parse(result[28].Substring(3, 2)), int.Parse(result[28].Substring(0, 2))), string.Format("{0}",result[29])},
+                                    { new DateTime(2021, int.Parse(result[30].Substring(3, 2)), int.Parse(result[30].Substring(0, 2))), string.Format("{0} {1} {2}",result[31], result[32], result[33])},
                                 };
                             }
                         }
@@ -463,22 +588,22 @@ namespace TelegramConsoleApp
                             {
                                 return new Dictionary<DateTime, string>
                                 {
-                                    { Convert.ToDateTime(result[18]), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
-                                    { Convert.ToDateTime(result[22]), string.Format("{0}",result[23])},
-                                    { Convert.ToDateTime(result[24]), string.Format("{0} {1} {2}",result[25], result[26], result[27])},
-                                    { Convert.ToDateTime(result[28]), string.Format("{0} {1} {2}",result[29], result[30], result[31])},
-                                    { Convert.ToDateTime(result[32]), string.Format("{0}",result[33])},
+                                    { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
+                                    { new DateTime(2021, int.Parse(result[22].Substring(3, 2)), int.Parse(result[22].Substring(0, 2))), string.Format("{0}",result[23])},
+                                    { new DateTime(2021, int.Parse(result[24].Substring(3, 2)), int.Parse(result[24].Substring(0, 2))), string.Format("{0} {1} {2}",result[25], result[26], result[27])},
+                                    { new DateTime(2021, int.Parse(result[28].Substring(3, 2)), int.Parse(result[28].Substring(0, 2))), string.Format("{0} {1} {2}",result[29], result[30], result[31])},
+                                    { new DateTime(2021, int.Parse(result[32].Substring(3, 2)), int.Parse(result[32].Substring(0, 2))), string.Format("{0}",result[33])},
                                 };
                             }
                             else
                             {
                                 return new Dictionary<DateTime, string>
                                 {
-                                    { Convert.ToDateTime(result[18]), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
-                                    { Convert.ToDateTime(result[22]), string.Format("{0}",result[23])},
-                                    { Convert.ToDateTime(result[24]), string.Format("{0} {1} {2}",result[25], result[26], result[27])},
-                                    { Convert.ToDateTime(result[28]), string.Format("{0} {1} {2}",result[29], result[30], result[31])},
-                                    { Convert.ToDateTime(result[32]), string.Format("{0} {1} {2}",result[33], result[34], result[35])},
+                                    { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
+                                    { new DateTime(2021, int.Parse(result[22].Substring(3, 2)), int.Parse(result[22].Substring(0, 2))), string.Format("{0}",result[23])},
+                                    { new DateTime(2021, int.Parse(result[24].Substring(3, 2)), int.Parse(result[24].Substring(0, 2))), string.Format("{0} {1} {2}",result[25], result[26], result[27])},
+                                    { new DateTime(2021, int.Parse(result[28].Substring(3, 2)), int.Parse(result[28].Substring(0, 2))), string.Format("{0} {1} {2}",result[29], result[30], result[31])},
+                                    { new DateTime(2021, int.Parse(result[32].Substring(3, 2)), int.Parse(result[32].Substring(0, 2))), string.Format("{0} {1} {2}",result[33], result[34], result[35])},
                                 };
                             }
                         }
@@ -494,22 +619,22 @@ namespace TelegramConsoleApp
                             {
                                 return new Dictionary<DateTime, string>
                                 {
-                                    { Convert.ToDateTime(result[18]), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
-                                    { Convert.ToDateTime(result[22]), string.Format("{0} {1} {2}",result[23], result[24], result[25])},
-                                    { Convert.ToDateTime(result[26]), string.Format("{0}",result[27])},
-                                    { Convert.ToDateTime(result[28]), string.Format("{0}",result[29])},
-                                    { Convert.ToDateTime(result[30]), string.Format("{0}",result[31])},
+                                    { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
+                                    { new DateTime(2021, int.Parse(result[22].Substring(3, 2)), int.Parse(result[22].Substring(0, 2))), string.Format("{0} {1} {2}",result[23], result[24], result[25])},
+                                    { new DateTime(2021, int.Parse(result[26].Substring(3, 2)), int.Parse(result[26].Substring(0, 2))), string.Format("{0}",result[27])},
+                                    { new DateTime(2021, int.Parse(result[28].Substring(3, 2)), int.Parse(result[28].Substring(0, 2))), string.Format("{0}",result[29])},
+                                    { new DateTime(2021, int.Parse(result[30].Substring(3, 2)), int.Parse(result[30].Substring(0, 2))), string.Format("{0}",result[31])},
                                 };
                             }
                             else
                             {
                                 return new Dictionary<DateTime, string>
                                 {
-                                    { Convert.ToDateTime(result[18]), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
-                                    { Convert.ToDateTime(result[22]), string.Format("{0} {1} {2}",result[23], result[24], result[25])},
-                                    { Convert.ToDateTime(result[26]), string.Format("{0}",result[27])},
-                                    { Convert.ToDateTime(result[28]), string.Format("{0}",result[29])},
-                                    { Convert.ToDateTime(result[30]), string.Format("{0} {1} {2}",result[31], result[32], result[33])},
+                                    { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
+                                    { new DateTime(2021, int.Parse(result[22].Substring(3, 2)), int.Parse(result[22].Substring(0, 2))), string.Format("{0} {1} {2}",result[23], result[24], result[25])},
+                                    { new DateTime(2021, int.Parse(result[26].Substring(3, 2)), int.Parse(result[26].Substring(0, 2))), string.Format("{0}",result[27])},
+                                    { new DateTime(2021, int.Parse(result[28].Substring(3, 2)), int.Parse(result[28].Substring(0, 2))), string.Format("{0}",result[29])},
+                                    { new DateTime(2021, int.Parse(result[30].Substring(3, 2)), int.Parse(result[30].Substring(0, 2))), string.Format("{0} {1} {2}",result[31], result[32], result[33])},
                                 };
                             }
                         }
@@ -519,22 +644,22 @@ namespace TelegramConsoleApp
                             {
                                 return new Dictionary<DateTime, string>
                                 {
-                                    { Convert.ToDateTime(result[18]), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
-                                    { Convert.ToDateTime(result[22]), string.Format("{0} {1} {2}",result[23], result[24], result[25])},
-                                    { Convert.ToDateTime(result[26]), string.Format("{0}",result[27])},
-                                    { Convert.ToDateTime(result[28]), string.Format("{0} {1} {2}",result[29], result[30], result[31])},
-                                    { Convert.ToDateTime(result[32]), string.Format("{0}",result[33])},
+                                    { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
+                                    { new DateTime(2021, int.Parse(result[22].Substring(3, 2)), int.Parse(result[22].Substring(0, 2))), string.Format("{0} {1} {2}",result[23], result[24], result[25])},
+                                    { new DateTime(2021, int.Parse(result[26].Substring(3, 2)), int.Parse(result[26].Substring(0, 2))), string.Format("{0}",result[27])},
+                                    { new DateTime(2021, int.Parse(result[28].Substring(3, 2)), int.Parse(result[28].Substring(0, 2))), string.Format("{0} {1} {2}",result[29], result[30], result[31])},
+                                    { new DateTime(2021, int.Parse(result[32].Substring(3, 2)), int.Parse(result[32].Substring(0, 2))), string.Format("{0}",result[33])},
                                 };
                             }
                             else
                             {
                                 return new Dictionary<DateTime, string>
                                 {
-                                    { Convert.ToDateTime(result[18]), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
-                                    { Convert.ToDateTime(result[22]), string.Format("{0} {1} {2}",result[23], result[24], result[25])},
-                                    { Convert.ToDateTime(result[26]), string.Format("{0}",result[27])},
-                                    { Convert.ToDateTime(result[28]), string.Format("{0} {1} {2}",result[29], result[30], result[31])},
-                                    { Convert.ToDateTime(result[32]), string.Format("{0} {1} {2}",result[33], result[34], result[35])},
+                                    { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
+                                    { new DateTime(2021, int.Parse(result[22].Substring(3, 2)), int.Parse(result[22].Substring(0, 2))), string.Format("{0} {1} {2}",result[23], result[24], result[25])},
+                                    { new DateTime(2021, int.Parse(result[26].Substring(3, 2)), int.Parse(result[26].Substring(0, 2))), string.Format("{0}",result[27])},
+                                    { new DateTime(2021, int.Parse(result[28].Substring(3, 2)), int.Parse(result[28].Substring(0, 2))), string.Format("{0} {1} {2}",result[29], result[30], result[31])},
+                                    { new DateTime(2021, int.Parse(result[32].Substring(3, 2)), int.Parse(result[32].Substring(0, 2))), string.Format("{0} {1} {2}",result[33], result[34], result[35])},
                                 };
                             }
                         }
@@ -547,22 +672,22 @@ namespace TelegramConsoleApp
                             {
                                 return new Dictionary<DateTime, string>
                                 {
-                                    { Convert.ToDateTime(result[18]), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
-                                    { Convert.ToDateTime(result[22]), string.Format("{0} {1} {2}",result[23], result[24], result[25])},
-                                    { Convert.ToDateTime(result[26]), string.Format("{0} {1} {2}",result[27], result[28], result[29])},
-                                    { Convert.ToDateTime(result[30]), string.Format("{0}",result[31])},
-                                    { Convert.ToDateTime(result[32]), string.Format("{0}",result[33])},
+                                    { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
+                                    { new DateTime(2021, int.Parse(result[22].Substring(3, 2)), int.Parse(result[22].Substring(0, 2))), string.Format("{0} {1} {2}",result[23], result[24], result[25])},
+                                    { new DateTime(2021, int.Parse(result[26].Substring(3, 2)), int.Parse(result[26].Substring(0, 2))), string.Format("{0} {1} {2}",result[27], result[28], result[29])},
+                                    { new DateTime(2021, int.Parse(result[30].Substring(3, 2)), int.Parse(result[30].Substring(0, 2))), string.Format("{0}",result[31])},
+                                    { new DateTime(2021, int.Parse(result[32].Substring(3, 2)), int.Parse(result[32].Substring(0, 2))), string.Format("{0}",result[33])},
                                 };
                             }
                             else
                             {
                                 return new Dictionary<DateTime, string>
                                 {
-                                    { Convert.ToDateTime(result[18]), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
-                                    { Convert.ToDateTime(result[22]), string.Format("{0} {1} {2}",result[23], result[24], result[25])},
-                                    { Convert.ToDateTime(result[26]), string.Format("{0} {1} {2}",result[27], result[28], result[29])},
-                                    { Convert.ToDateTime(result[30]), string.Format("{0}",result[31])},
-                                    { Convert.ToDateTime(result[32]), string.Format("{0} {1} {2}",result[33], result[34], result[35])},
+                                    { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
+                                    { new DateTime(2021, int.Parse(result[22].Substring(3, 2)), int.Parse(result[22].Substring(0, 2))), string.Format("{0} {1} {2}",result[23], result[24], result[25])},
+                                    { new DateTime(2021, int.Parse(result[26].Substring(3, 2)), int.Parse(result[26].Substring(0, 2))), string.Format("{0} {1} {2}",result[27], result[28], result[29])},
+                                    { new DateTime(2021, int.Parse(result[30].Substring(3, 2)), int.Parse(result[30].Substring(0, 2))), string.Format("{0}",result[31])},
+                                    { new DateTime(2021, int.Parse(result[32].Substring(3, 2)), int.Parse(result[32].Substring(0, 2))), string.Format("{0} {1} {2}",result[33], result[34], result[35])},
                                 };
                             }
                         }
@@ -572,22 +697,22 @@ namespace TelegramConsoleApp
                             {
                                 return new Dictionary<DateTime, string>
                                 {
-                                    { Convert.ToDateTime(result[18]), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
-                                    { Convert.ToDateTime(result[22]), string.Format("{0} {1} {2}",result[23], result[24], result[25])},
-                                    { Convert.ToDateTime(result[26]), string.Format("{0} {1} {2}",result[27], result[28], result[29])},
-                                    { Convert.ToDateTime(result[30]), string.Format("{0} {1} {2}",result[31], result[32], result[33])},
-                                    { Convert.ToDateTime(result[34]), string.Format("{0}",result[35])},
+                                    { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
+                                    { new DateTime(2021, int.Parse(result[22].Substring(3, 2)), int.Parse(result[22].Substring(0, 2))), string.Format("{0} {1} {2}",result[23], result[24], result[25])},
+                                    { new DateTime(2021, int.Parse(result[26].Substring(3, 2)), int.Parse(result[26].Substring(0, 2))), string.Format("{0} {1} {2}",result[27], result[28], result[29])},
+                                    { new DateTime(2021, int.Parse(result[30].Substring(3, 2)), int.Parse(result[30].Substring(0, 2))), string.Format("{0} {1} {2}",result[31], result[32], result[33])},
+                                    { new DateTime(2021, int.Parse(result[34].Substring(3, 2)), int.Parse(result[34].Substring(0, 2))), string.Format("{0}",result[35])},
                                 };
                             }
                             else
                             {
                                 return new Dictionary<DateTime, string>
                                 {
-                                    { Convert.ToDateTime(result[18]), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
-                                    { Convert.ToDateTime(result[22]), string.Format("{0} {1} {2}",result[23], result[24], result[25])},
-                                    { Convert.ToDateTime(result[26]), string.Format("{0} {1} {2}",result[27], result[28], result[29])},
-                                    { Convert.ToDateTime(result[30]), string.Format("{0} {1} {2}",result[31], result[32], result[33])},
-                                    { Convert.ToDateTime(result[34]), string.Format("{0} {1} {2}",result[35], result[36], result[37])},
+                                    { new DateTime(2021, int.Parse(result[18].Substring(3, 2)), int.Parse(result[18].Substring(0, 2))), string.Format("{0} {1} {2}",result[19], result[20], result[21])},
+                                    { new DateTime(2021, int.Parse(result[22].Substring(3, 2)), int.Parse(result[22].Substring(0, 2))), string.Format("{0} {1} {2}",result[23], result[24], result[25])},
+                                    { new DateTime(2021, int.Parse(result[26].Substring(3, 2)), int.Parse(result[26].Substring(0, 2))), string.Format("{0} {1} {2}",result[27], result[28], result[29])},
+                                    { new DateTime(2021, int.Parse(result[30].Substring(3, 2)), int.Parse(result[30].Substring(0, 2))), string.Format("{0} {1} {2}",result[31], result[32], result[33])},
+                                    { new DateTime(2021, int.Parse(result[34].Substring(3, 2)), int.Parse(result[34].Substring(0, 2))), string.Format("{0} {1} {2}",result[35], result[36], result[37])},
                                 };
                             }
                         }
@@ -605,32 +730,32 @@ namespace TelegramConsoleApp
 
         public async static void ForwardMessage(TelegramClient client, int userId, int chatId, long hashCode, int messageIdInSourceContactToForward)
         {
-            // normal Group
-            var sourcePeer = new TLInputPeerChat { ChatId = chatId };
-            var targetPeer = new TLInputPeerUser { UserId = userId, AccessHash = hashCode };
+            //// normal Group
+            //var sourcePeer = new TLInputPeerChat { ChatId = chatId };
+            //var targetPeer = new TLInputPeerUser { UserId = userId, AccessHash = hashCode };
 
-            // random Ids to prevent bombinggg
-            var randomIds = new TLVector<long>
-            {
-                TLSharp.Core.Utils.Helpers.GenerateRandomLong()
-            };
+            //// random Ids to prevent bombinggg
+            //var randomIds = new TLVector<long>
+            //{
+            //    TLSharp.Core.Utils.Helpers.GenerateRandomLong()
+            //};
 
-            // source messages
-            var sourceMessageIds = new TLVector<int>
-            {
-                messageIdInSourceContactToForward	// this ID should be in the SourcePeer's Messages
-            };
+            //// source messages
+            //var sourceMessageIds = new TLVector<int>
+            //{
+            //    messageIdInSourceContactToForward	// this ID should be in the SourcePeer's Messages
+            //};
 
-            var forwardRequest = new TLRequestForwardMessages()
-            {
-                FromPeer = sourcePeer,
-                Id = sourceMessageIds,
-                ToPeer = targetPeer,
-                RandomId = randomIds,
-                //Silent = false
-            };
+            //var forwardRequest = new TLRequestForwardMessages()
+            //{
+            //    FromPeer = sourcePeer,
+            //    Id = sourceMessageIds,
+            //    ToPeer = targetPeer,
+            //    RandomId = randomIds,
+            //    //Silent = false
+            //};
 
-            var result = await client.SendRequestAsync<TLUpdates>(forwardRequest);
+            //var result = await client.SendRequestAsync<TLUpdates>(forwardRequest);
 
             //var req = new TLRequestForwardMessage()
             //{
