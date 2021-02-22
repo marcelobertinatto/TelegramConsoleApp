@@ -1,0 +1,41 @@
+﻿<Properties StartupConfiguration="{F6BB4B4F-CC49-4137-911D-765E561168DD}|Default">
+  <MonoDevelop.Ide.ItemProperties.TelegramConsoleApp PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="TelegramConsoleApp/Program.cs">
+    <Files>
+      <File FileName="TelegramConsoleApp/Program.cs" Line="22" Column="1" />
+    </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State name="__root__">
+          <Node name="TelegramConsoleApp" expanded="True">
+            <Node name="TelegramConsoleApp" expanded="True">
+              <Node name="Dependencies" expanded="True" />
+              <Node name="Model" expanded="True" />
+              <Node name="Program.cs" selected="True" />
+            </Node>
+          </Node>
+        </State>
+      </Pad>
+      <Pad Id="MonoDevelop.Debugger.WatchPad">
+        <State>
+          <Value>fullPathToDat</Value>
+          <Value>mes</Value>
+          <Value>mes</Value>
+          <Value>d</Value>
+        </State>
+      </Pad>
+    </Pads>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore>
+      <Breakpoint file="/Users/marcelobertinatto/git/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp/Program.cs" relfile="TelegramConsoleApp/Program.cs" line="22" column="9" />
+      <Breakpoint file="/Users/marcelobertinatto/git/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp/Program.cs" relfile="TelegramConsoleApp/Program.cs" line="29" column="13" />
+      <Breakpoint file="/Users/marcelobertinatto/git/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp/Program.cs" relfile="TelegramConsoleApp/Program.cs" line="94" column="37" />
+      <Breakpoint file="/Users/marcelobertinatto/git/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp/Program.cs" relfile="TelegramConsoleApp/Program.cs" line="48" column="21" />
+      <Breakpoint file="/Users/marcelobertinatto/git/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp/Program.cs" relfile="TelegramConsoleApp/Program.cs" line="122" column="29" />
+    </BreakpointStore>
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>

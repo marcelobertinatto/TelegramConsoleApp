@@ -1,70 +1,85 @@
 {
   "version": 3,
   "targets": {
-    ".NETCoreApp,Version=v3.1": {
-      "TLSharp/0.1.0.574": {
+    "net5.0": {
+      "TLSchema/1.1.0": {
         "type": "package",
         "compile": {
-          "lib/net46/TLSharp.Core.dll": {},
-          "lib/net46/TeleSharp.TL.dll": {}
+          "lib/netstandard2.0/TLSchema.dll": {}
         },
         "runtime": {
-          "lib/net46/TLSharp.Core.dll": {},
-          "lib/net46/TeleSharp.TL.dll": {}
+          "lib/netstandard2.0/TLSchema.dll": {}
+        }
+      },
+      "TLSharp.Core/1.1.0": {
+        "type": "package",
+        "dependencies": {
+          "TLSchema": "1.1.0"
+        },
+        "compile": {
+          "lib/netstandard2.0/TLSharp.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/TLSharp.dll": {}
         }
       }
     }
   },
   "libraries": {
-    "TLSharp/0.1.0.574": {
-      "sha512": "OzLvXyTIZsHkJbX3iZRSb1vQdnkyO5yNcdPK80Snbrpm4kab59FdtijFGQRhe2NVjjKe5TabzxNPH3M0B64Lyw==",
+    "TLSchema/1.1.0": {
+      "sha512": "IJN057mi7eUss6QRWEhzFyIwhx37aODSvPZRczqgJz3oeNeKK194jhlGTFDWfpKDlc5TcJc52TuQ0QsM5EYa3Q==",
       "type": "package",
-      "path": "tlsharp/0.1.0.574",
+      "path": "tlschema/1.1.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
-        "lib/net45/TeleSharp.TL.dll",
-        "lib/net46/TLSharp.Core.dll",
-        "lib/net46/TeleSharp.TL.dll",
-        "tlsharp.0.1.0.574.nupkg.sha512",
-        "tlsharp.nuspec"
+        "lib/netstandard2.0/TLSchema.dll",
+        "tlschema.1.1.0.nupkg.sha512",
+        "tlschema.nuspec"
+      ]
+    },
+    "TLSharp.Core/1.1.0": {
+      "sha512": "Cyy43SvZfvA2DWe9kkauhJzcImhbrfANbSZ5FtZOLV3EieHma1z7tz34/y6erMdoSGZeGgY+0VqufQwoeqro2A==",
+      "type": "package",
+      "path": "tlsharp.core/1.1.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/netstandard2.0/TLSharp.dll",
+        "tlsharp.core.1.1.0.nupkg.sha512",
+        "tlsharp.core.nuspec"
       ]
     }
   },
   "projectFileDependencyGroups": {
-    ".NETCoreApp,Version=v3.1": [
-      "TLSharp >= 0.1.0.574"
+    "net5.0": [
+      "TLSharp.Core >= 1.1.0"
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Marce\\.nuget\\packages\\": {},
-    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
+    "/Users/marcelobertinatto/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Marcelo\\Sandbox\\GIT\\TelegramConsoleApp\\TelegramConsoleApp\\TelegramConsoleApp.csproj",
+      "projectUniqueName": "/Users/marcelobertinatto/git/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp.csproj",
       "projectName": "TelegramConsoleApp",
-      "projectPath": "D:\\Marcelo\\Sandbox\\GIT\\TelegramConsoleApp\\TelegramConsoleApp\\TelegramConsoleApp.csproj",
-      "packagesPath": "C:\\Users\\Marce\\.nuget\\packages\\",
-      "outputPath": "D:\\Marcelo\\Sandbox\\GIT\\TelegramConsoleApp\\TelegramConsoleApp\\obj\\",
+      "projectPath": "/Users/marcelobertinatto/git/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp.csproj",
+      "packagesPath": "/Users/marcelobertinatto/.nuget/packages/",
+      "outputPath": "/Users/marcelobertinatto/git/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp/obj/",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
-      ],
       "configFilePaths": [
-        "C:\\Users\\Marce\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        "/Users/marcelobertinatto/.config/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
-        "netcoreapp3.1"
+        "net5.0"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
-        "netcoreapp3.1": {
+        "net5.0": {
+          "targetAlias": "net5.0",
           "projectReferences": {}
         }
       },
@@ -75,11 +90,12 @@
       }
     },
     "frameworks": {
-      "netcoreapp3.1": {
+      "net5.0": {
+        "targetAlias": "net5.0",
         "dependencies": {
-          "TLSharp": {
+          "TLSharp.Core": {
             "target": "Package",
-            "version": "[0.1.0.574, )"
+            "version": "[1.1.0, )"
           }
         },
         "imports": [
@@ -97,20 +113,8 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.403\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/5.0.103/RuntimeIdentifierGraph.json"
       }
     }
-  },
-  "logs": [
-    {
-      "code": "NU1701",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "Package 'TLSharp 0.1.0.574' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8' instead of the project target framework '.NETCoreApp,Version=v3.1'. This package may not be fully compatible with your project.",
-      "libraryId": "TLSharp",
-      "targetGraphs": [
-        ".NETCoreApp,Version=v3.1"
-      ]
-    }
-  ]
+  }
 }

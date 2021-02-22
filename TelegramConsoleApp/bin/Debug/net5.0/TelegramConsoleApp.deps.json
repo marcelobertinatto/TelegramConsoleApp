@@ -1,0 +1,59 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v5.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v5.0": {
+      "TelegramConsoleApp/1.0.0": {
+        "dependencies": {
+          "TLSharp.Core": "1.1.0"
+        },
+        "runtime": {
+          "TelegramConsoleApp.dll": {}
+        }
+      },
+      "TLSchema/1.1.0": {
+        "runtime": {
+          "lib/netstandard2.0/TLSchema.dll": {
+            "assemblyVersion": "1.1.0.0",
+            "fileVersion": "1.1.0.0"
+          }
+        }
+      },
+      "TLSharp.Core/1.1.0": {
+        "dependencies": {
+          "TLSchema": "1.1.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/TLSharp.dll": {
+            "assemblyVersion": "1.1.0.0",
+            "fileVersion": "1.1.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "TelegramConsoleApp/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "TLSchema/1.1.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-IJN057mi7eUss6QRWEhzFyIwhx37aODSvPZRczqgJz3oeNeKK194jhlGTFDWfpKDlc5TcJc52TuQ0QsM5EYa3Q==",
+      "path": "tlschema/1.1.0",
+      "hashPath": "tlschema.1.1.0.nupkg.sha512"
+    },
+    "TLSharp.Core/1.1.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Cyy43SvZfvA2DWe9kkauhJzcImhbrfANbSZ5FtZOLV3EieHma1z7tz34/y6erMdoSGZeGgY+0VqufQwoeqro2A==",
+      "path": "tlsharp.core/1.1.0",
+      "hashPath": "tlsharp.core.1.1.0.nupkg.sha512"
+    }
+  }
+}

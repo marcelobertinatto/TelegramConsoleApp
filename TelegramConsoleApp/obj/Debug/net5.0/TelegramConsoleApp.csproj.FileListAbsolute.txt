@@ -1,0 +1,17 @@
+/Users/marcelobertinatto/git/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp/bin/Debug/net5.0/TelegramConsoleApp.deps.json
+/Users/marcelobertinatto/git/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp/bin/Debug/net5.0/TelegramConsoleApp.runtimeconfig.json
+/Users/marcelobertinatto/git/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp/bin/Debug/net5.0/TelegramConsoleApp.runtimeconfig.dev.json
+/Users/marcelobertinatto/git/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp/bin/Debug/net5.0/TelegramConsoleApp.dll
+/Users/marcelobertinatto/git/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp/bin/Debug/net5.0/ref/TelegramConsoleApp.dll
+/Users/marcelobertinatto/git/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp/bin/Debug/net5.0/TelegramConsoleApp.pdb
+/Users/marcelobertinatto/git/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp/bin/Debug/net5.0/TLSchema.dll
+/Users/marcelobertinatto/git/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp/bin/Debug/net5.0/TLSharp.dll
+/Users/marcelobertinatto/git/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp/obj/Debug/net5.0/TelegramConsoleApp.GeneratedMSBuildEditorConfig.editorconfig
+/Users/marcelobertinatto/git/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp/obj/Debug/net5.0/TelegramConsoleApp.AssemblyInfoInputs.cache
+/Users/marcelobertinatto/git/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp/obj/Debug/net5.0/TelegramConsoleApp.AssemblyInfo.cs
+/Users/marcelobertinatto/git/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp/obj/Debug/net5.0/TelegramConsoleApp.csproj.CoreCompileInputs.cache
+/Users/marcelobertinatto/git/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp/obj/Debug/net5.0/TelegramConsoleApp.csproj.CopyComplete
+/Users/marcelobertinatto/git/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp/obj/Debug/net5.0/TelegramConsoleApp.dll
+/Users/marcelobertinatto/git/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp/obj/Debug/net5.0/ref/TelegramConsoleApp.dll
+/Users/marcelobertinatto/git/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp/obj/Debug/net5.0/TelegramConsoleApp.pdb
+/Users/marcelobertinatto/git/TelegramConsoleApp/TelegramConsoleApp/TelegramConsoleApp/obj/Debug/net5.0/TelegramConsoleApp.genruntimeconfig.cache

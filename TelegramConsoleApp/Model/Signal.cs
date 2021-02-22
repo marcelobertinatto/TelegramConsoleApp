@@ -12,6 +12,7 @@ namespace TelegramConsoleApp.Model
         public string CurrencyTime { get; set; }
         public string CurrencySignal { get; set; }
         public string Date { get; set; }
+        public Dictionary<DateTime,string> BackTest { get; set; }
         public string CurrencyAssertPercentage1 { get; set; }
         public string CurrencyAssertPercentage2 { get; set; }
         public string CurrencyAssertPercentage3 { get; set; }
